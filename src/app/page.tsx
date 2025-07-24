@@ -1,6 +1,33 @@
-import Link from "next/link";
+import Link from 'next/link'
+import { useChatStore, useScenario, useMessage } from './hooks'
 
 export default function HomePage() {
+  const store = useChatStore()
+  const scenario = useScenario()
+  const message = useMessage()
+
+  const handleGenerateScenario = async () => {
+    if (scenario.isLoading) return
+
+    const { language, level } = store
+    if (!language || !level) {
+      return
+    }
+
+    await scenario.mutate({ language, level }, store.setScenario)
+  }
+
+  const handleGenerateResponse = async () => {
+    if (message.isLoading) return
+
+    const { scenario, language, level } = store
+    if (!scenario || !language || !level) {
+      return
+    }
+
+    await message.mutate({ scenario, language, level }, store.appendMessage)
+  }
+
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-[#2e026d] to-[#15162c] text-white">
       <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16">
@@ -33,5 +60,5 @@ export default function HomePage() {
         </div>
       </div>
     </main>
-  );
+  )
 }
