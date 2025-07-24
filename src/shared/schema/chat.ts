@@ -1,6 +1,10 @@
 import { z } from 'zod'
 import { Language, Level } from './language'
 
+export const Scenario = z.string()
+
+export type Scenario = z.infer<typeof Scenario>
+
 export const UserMessage = z.object({
   type: z.literal('user'),
   content: z.string(),
@@ -37,13 +41,13 @@ export const GenerateScenarioInput = z.object({
 export type GenerateScenarioInput = z.infer<typeof GenerateScenarioInput>
 
 export const GenerateScenarioOutput = z.object({
-  content: z.string(),
+  scenario: Scenario,
 })
 
 export type GenerateScenarioOutput = z.infer<typeof GenerateScenarioOutput>
 
 export const GenerateResponseInput = z.object({
-  scenario: z.string(),
+  scenario: Scenario,
   language: Language,
   level: Level,
   messages: z.array(Message),
