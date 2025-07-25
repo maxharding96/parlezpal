@@ -1,7 +1,7 @@
 import type { Language, Level } from '@/shared/schema'
 import dedent from 'dedent'
 
-export const buildGenerateResponseInstructions = ({
+export const buildGenerateMessageInstructions = ({
   scenario,
   language,
   level,
@@ -24,7 +24,7 @@ export const buildGenerateResponseInstructions = ({
   - The student is at a ${level} level of ${language}. This is specified by the Common European Framework of Reference for Languages (CEFR) scale (A1, A2, B1, B2, C1, C2).
   - The student is a fluent English speaker.
 
-  # Response Format
+  # Message Format
   - Listen carefully to the student's latest response in the scenario.
   - If you believe the student's response is correct:
     - Respond naturally in the scenario in ${language} & keep the conversation going.

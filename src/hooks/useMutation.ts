@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { z } from 'zod'
+import { z } from 'zod'
 
 export function useMutation<X extends z.ZodTypeAny, Y>(
   url: string,
@@ -29,14 +29,18 @@ export function useMutation<X extends z.ZodTypeAny, Y>(
         throw new Error(`A network error occurred.`)
       }
 
-      const jsonData: unknown = await res.json()
+      const jsonData = await res.json()
 
       const data = schema.parse(jsonData) as z.infer<X>
 
       onSuccess(data)
       setIsLoading(false)
     } catch (e) {
-      if (e instanceof Error) {
+      if (e instanceof z.ZodError) {
+        setError(
+          `Validation error: ${e.errors.map((err) => err.message).join(', ')}`
+        )
+      } else if (e instanceof Error) {
         setError(e.message)
       }
       setIsLoading(false)
