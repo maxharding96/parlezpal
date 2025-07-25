@@ -2,8 +2,8 @@ import type { Chat } from '@/server/chat'
 import OpenAI from 'openai'
 import { zodTextFormat } from 'openai/helpers/zod'
 import type {
-  GenerateResponseInput,
-  GenerateResponseOutput,
+  GenerateMessageInput,
+  GenerateMessageOutput,
   GenerateScenarioOutput,
   GenerateScenarioInput,
   Message,
@@ -14,7 +14,7 @@ import {
 } from '@/shared/schema'
 import type { ResponseInput } from 'openai/resources/responses/responses'
 import {
-  buildGenerateResponseInstructions,
+  buildGenerateMessageInstructions,
   buildGenerateScenarioInstructions,
   buildGenerateScenarioInput,
 } from './instructions'
@@ -22,19 +22,19 @@ import {
 export class OpenAIChat implements Chat {
   private client: OpenAI
 
-  constructor(apiKey: string) {
+  constructor({ apiKey }: { apiKey: string }) {
     this.client = new OpenAI({ apiKey })
   }
 
-  async generateResponse(
-    input: GenerateResponseInput
-  ): Promise<GenerateResponseOutput> {
+  async generateMessage(
+    input: GenerateMessageInput
+  ): Promise<GenerateMessageOutput> {
     const { messages, ...rest } = input
 
     const response = await this.client.responses.parse({
       model: 'gpt-4.1-nano',
       temperature: 0.7,
-      instructions: buildGenerateResponseInstructions(rest),
+      instructions: buildGenerateMessageInstructions(rest),
       input: this.formatHistory(messages),
       text: {
         format: zodTextFormat(AssitantMessage, 'message'),
