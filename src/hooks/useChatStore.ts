@@ -10,7 +10,7 @@ interface ChatStore {
   level: Level | null
   setLevel: (level: Level | null) => void
   history: Message[]
-  appendMessage: (message: Message) => void
+  setHistory: (history: Message[]) => void
   reset: () => void
 }
 
@@ -24,10 +24,7 @@ export const useChatStore = create<ChatStore>()(
       level: null,
       setLevel: (level) => set({ level }),
       history: [],
-      appendMessage: (message) =>
-        set((state) => ({
-          history: [...state.history, message],
-        })),
+      setHistory: (history) => set({ history }),
       reset: () =>
         set({
           scenario: null,

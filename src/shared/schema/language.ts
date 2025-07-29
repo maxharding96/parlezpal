@@ -1,17 +1,12 @@
 import { z } from 'zod'
 
 export const Language = z.enum([
-  'english',
-  'spanish',
-  'french',
-  'german',
-  'italian',
-  'portuguese',
-  'chinese',
-  'japanese',
-  'korean',
-  'russian',
-  'arabic',
+  'French',
+  'Spanish',
+  'German',
+  'Italian',
+  'Portuguese',
+  'Dutch',
 ])
 
 export type Language = z.infer<typeof Language>

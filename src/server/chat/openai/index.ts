@@ -9,7 +9,7 @@ import type {
   Message,
 } from '@/shared/schema'
 import {
-  AssitantMessage,
+  GenerateMessageEvent,
   GenerateScenarioOutput as GenerateScenarioOutputEvent,
 } from '@/shared/schema'
 import type { ResponseInput } from 'openai/resources/responses/responses'
@@ -29,25 +29,42 @@ export class OpenAIChat implements Chat {
   async generateMessage(
     input: GenerateMessageInput
   ): Promise<GenerateMessageOutput> {
-    const { messages, ...rest } = input
+    const { audioBlob, history } = input
+
+    const file = new File([audioBlob], 'audio.webm', { type: 'audio/webm' })
+
+    const transcription = await this.client.audio.transcriptions.create({
+      file,
+      model: 'gpt-4o-mini-transcribe',
+      language: 'fr',
+    })
+
+    console.log('Transcription result:', transcription)
+
+    history.push({
+      type: 'user',
+      content: transcription.text,
+    })
 
     const response = await this.client.responses.parse({
       model: 'gpt-4.1-nano',
       temperature: 0.7,
-      instructions: buildGenerateMessageInstructions(rest),
-      input: this.formatHistory(messages),
+      instructions: buildGenerateMessageInstructions(input),
+      input: this.formatHistory(history),
       text: {
-        format: zodTextFormat(AssitantMessage, 'message'),
+        format: zodTextFormat(GenerateMessageEvent, 'event'),
       },
     })
 
-    const message = response.output_parsed
+    const event = response.output_parsed
 
-    if (!message) {
+    if (!event) {
       throw new Error('No message returned from OpenAI')
     }
 
-    return { message }
+    history.push(event.message)
+
+    return { history }
   }
 
   async generateScenario(

@@ -1,28 +1,31 @@
 import { useState } from 'react'
 import { z } from 'zod'
 
-export function useMutation<X extends z.ZodTypeAny, Y>(
+export function useMutation<X extends z.ZodTypeAny>(
   url: string,
   schema: X
 ): {
-  mutate: (body: Y, onSuccess: (data: z.infer<X>) => void) => Promise<void>
+  mutate: (
+    body: BodyInit,
+    onSuccess: (data: z.infer<X>) => void
+  ) => Promise<void>
   isLoading: boolean
   error: string | null
 } {
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [error, setError] = useState<string | null>(null)
 
-  const mutate = async (body: Y, onSuccess: (data: z.infer<X>) => void) => {
+  const mutate = async (
+    body: BodyInit,
+    onSuccess: (data: z.infer<X>) => void
+  ) => {
     setIsLoading(true)
     setError(null)
 
     try {
       const res = await fetch(url, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(body),
+        body,
       })
 
       if (res.ok === false) {

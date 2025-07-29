@@ -69,5 +69,5 @@ export const buildGenerateScenarioInput = ({
   - Generate a real life scenario for me to practice ${language} in.
   - Make sure the scenario is appropriate for my level, ${level}.
   - Make sure the scenario is engaging and fun.
-  - Make sure the scenario is in ${language}.
+  - The scenario should always be written in English.
 `
