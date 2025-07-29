@@ -46,13 +46,18 @@ export const GenerateMessageInput = z.object({
   scenario: z.string(),
   language: Language,
   level: Level,
-  messages: z.array(Message),
+  audioBlob: z.instanceof(Blob),
+  history: z.array(Message),
 })
 
 export type GenerateMessageInput = z.infer<typeof GenerateMessageInput>
 
 export const GenerateMessageOutput = z.object({
-  message: AssitantMessage,
+  history: z.array(Message),
 })
 
 export type GenerateMessageOutput = z.infer<typeof GenerateMessageOutput>
+
+export const GenerateMessageEvent = z.object({
+  message: AssitantMessage,
+})
