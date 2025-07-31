@@ -12,7 +12,10 @@ import { InstructionsDisplay } from '@/components/instructions'
 export default function HomePage() {
   return (
     <main className="flex h-full flex-col items-center justify-center">
-      <ResizablePanelGroup direction="horizontal" className="shadow">
+      <div className="w-full px-8 py-4 shadow">
+        <h1 className="text-left text-4xl font-bold">ParlerPal</h1>
+      </div>
+      <ResizablePanelGroup direction="horizontal">
         <ResizablePanel defaultSize={50}>
           <ResizablePanelGroup direction="vertical">
             <ResizablePanel
@@ -33,16 +36,12 @@ export default function HomePage() {
               <InstructionsDisplay />
             </ResizablePanel>
           </ResizablePanelGroup>
-          .
         </ResizablePanel>
         <ResizableHandle />
         <ResizablePanel defaultSize={50} minSize={33} maxSize={66}>
           <ChatDisplay />
         </ResizablePanel>
       </ResizablePanelGroup>
-      <div className="w-full px-8 py-4">
-        <h1 className="text-right text-4xl font-bold">ParlerPal</h1>
-      </div>
     </main>
   )
 }

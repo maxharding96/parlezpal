@@ -1,3 +1,5 @@
+'use client'
+
 import { Instructions } from './Instructions'
 
 function Container(props: React.PropsWithChildren) {
@@ -15,6 +17,7 @@ export function InstructionsDisplay() {
       <Instructions.GenerateScenario />
       <Instructions.Record />
       <Instructions.Listen />
+      <Instructions.Replay />
       <Instructions.Submit />
     </Container>
   )

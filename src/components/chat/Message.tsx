@@ -3,6 +3,8 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { User, MessageCircle, MessageSquare, Play } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
+import { getUrl } from '@/lib/storage'
+import { useRef } from 'react'
 
 function getMessageLabel(message: Message) {
   switch (message.type) {
@@ -44,14 +46,26 @@ function getMessageStyle(message: Message) {
 }
 
 interface ChatMessageProps {
+  chatId: string
   message: Message
 }
 
 export function ChatMessage(props: ChatMessageProps) {
-  const { message } = props
+  const { chatId, message } = props
 
-  const handlePlayAudio = () => {
-    return
+  const url = getUrl({
+    chatId,
+    messageId: message.id,
+  })
+
+  const audioRef = useRef<HTMLAudioElement | null>(null)
+  const handleClickPlay = () => {
+    const audio = audioRef.current
+    if (!audio) return
+
+    if (audio.paused) {
+      void audio.play()
+    }
   }
 
   const styles = getMessageStyle(message)
@@ -67,11 +81,12 @@ export function ChatMessage(props: ChatMessageProps) {
               {getMessageIcon(message)}
               <Badge variant="secondary">{getMessageLabel(message)}</Badge>
             </div>
+            <audio ref={audioRef} src={url} />
             <Button
               variant="ghost"
               size="sm"
               className="h-8 w-8 p-0"
-              onClick={() => handlePlayAudio()}
+              onClick={handleClickPlay}
             >
               <Play className="h-4 w-4" />
             </Button>

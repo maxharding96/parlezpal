@@ -3,16 +3,19 @@ import { Language, Level } from './language'
 
 export const UserMessage = z.object({
   type: z.literal('user'),
+  id: z.string(),
   content: z.string(),
 })
 
 export const RoleplayMessage = z.object({
   type: z.literal('roleplay'),
+  id: z.string(),
   content: z.string(),
 })
 
 export const FeedbackMessage = z.object({
   type: z.literal('feedback'),
+  id: z.string(),
   content: z.string(),
 })
 
@@ -43,10 +46,11 @@ export const GenerateScenarioOutput = z.object({
 export type GenerateScenarioOutput = z.infer<typeof GenerateScenarioOutput>
 
 export const GenerateMessageInput = z.object({
+  chatId: z.string(),
+  messageId: z.string(),
   scenario: z.string(),
   language: Language,
   level: Level,
-  audioBlob: z.instanceof(Blob),
   history: z.array(Message),
 })
 

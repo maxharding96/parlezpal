@@ -4,6 +4,7 @@ import { useChatStore } from '@/hooks'
 import { Scenario } from './Scenario'
 
 export function ChatDisplay() {
+  const chatId = useChatStore((state) => state.chatId)
   const history = useChatStore((state) => state.history)
 
   return (
@@ -17,7 +18,7 @@ export function ChatDisplay() {
             </div>
           ) : (
             history.map((message, index) => (
-              <ChatMessage key={index} message={message} />
+              <ChatMessage key={index} chatId={chatId} message={message} />
             ))
           )}
         </div>
