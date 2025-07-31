@@ -18,6 +18,8 @@ import {
   buildGenerateScenarioInstructions,
   buildGenerateScenarioInput,
 } from './instructions'
+import { v4 as uuidv4 } from 'uuid'
+import { getUrl, putBlob } from '@/lib/storage'
 
 export class OpenAIChat implements Chat {
   private client: OpenAI
@@ -29,20 +31,27 @@ export class OpenAIChat implements Chat {
   async generateMessage(
     input: GenerateMessageInput
   ): Promise<GenerateMessageOutput> {
-    const { audioBlob, history } = input
+    const { chatId, messageId, history } = input
 
-    const file = new File([audioBlob], 'audio.webm', { type: 'audio/webm' })
-
-    const transcription = await this.client.audio.transcriptions.create({
-      file,
-      model: 'gpt-4o-mini-transcribe',
-      language: 'fr',
+    const url = getUrl({
+      chatId,
+      messageId,
     })
 
-    console.log('Transcription result:', transcription)
+    const audio = await fetch(url)
+
+    const transcription = await this.client.audio.transcriptions.create({
+      file: audio,
+      model: 'gpt-4o-mini-transcribe',
+      language: 'fr',
+      prompt:
+        'This is audio from a French roleplay excercise. The scenario is as follows: ' +
+        input.scenario,
+    })
 
     history.push({
       type: 'user',
+      id: messageId,
       content: transcription.text,
     })
 
@@ -62,7 +71,32 @@ export class OpenAIChat implements Chat {
       throw new Error('No message returned from OpenAI')
     }
 
-    history.push(event.message)
+    const responseId = uuidv4()
+
+    history.push({
+      ...event.message,
+      id: responseId,
+    })
+
+    const blob = await this.client.audio.speech
+      .create({
+        model: 'gpt-4o-mini-tts',
+        input: event.message.content,
+        voice: 'alloy',
+        instructions:
+          'You are French language tutor acting out a roleplay scenario.',
+      })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error('Failed to generate audio')
+        }
+        return response.blob()
+      })
+
+    await putBlob(blob, {
+      chatId,
+      messageId: responseId,
+    })
 
     return { history }
   }

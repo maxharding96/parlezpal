@@ -1,6 +1,8 @@
+'use client'
+
 import { forwardRef, Children } from 'react'
 import { cva, type VariantProps } from 'class-variance-authority'
-import { cn } from '@/lib/utils'
+import { cn } from '@/lib/utils/styles'
 
 const kbdVariants = cva(
   'inline-flex items-center justify-center font-mono text-xs font-semibold rounded border border-border bg-muted text-muted-foreground shadow-sm transition-colors',

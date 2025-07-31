@@ -1,7 +1,16 @@
+'use client'
+
 import { Kbd } from '@/components/ui/kbd'
-import { useKeyPress, useScenario, useRecord, useMessage } from '@/hooks'
+import {
+  useKeyPress,
+  useScenario,
+  useRecord,
+  useMessage,
+  useChatStore,
+} from '@/hooks'
 import { useAudioStore } from '@/hooks/useAudioStore'
-import { useMemo } from 'react'
+import { getBlob } from '@/lib/storage'
+import { playBlob } from '@/lib/utils/audio'
 
 const Record = () => {
   useRecord()
@@ -12,7 +21,7 @@ const Record = () => {
 }
 
 const GenerateScenario = () => {
-  const generate = useScenario()
+  const { generate } = useScenario()
 
   return (
     <Instruction
@@ -25,7 +34,10 @@ const GenerateScenario = () => {
 }
 
 const Submit = () => {
-  const generate = useMessage()
+  const audioBlob = useAudioStore((state) => state.audioBlob)
+  const { generate } = useMessage()
+
+  if (!audioBlob) return null
 
   return (
     <Instruction
@@ -40,17 +52,10 @@ const Submit = () => {
 const Listen = () => {
   const audioBlob = useAudioStore((state) => state.audioBlob)
 
-  const audio = useMemo(() => {
-    if (!audioBlob) return null
-
-    const url = URL.createObjectURL(audioBlob)
-    return new Audio(url)
-  }, [audioBlob])
-
-  if (!audio) return null
+  if (!audioBlob) return null
 
   const handlePress = () => {
-    void audio.play()
+    playBlob(audioBlob)
   }
 
   return (
@@ -63,16 +68,26 @@ const Listen = () => {
   )
 }
 
-const Replay = () => (
-  <Instruction
-    action="Press"
-    keyStr="r"
-    reaction="to replay the last message"
-    onPress={() => {
-      // Implement replay functionality here
-    }}
-  />
-)
+const Replay = () => {
+  const chatId = useChatStore((state) => state.chatId)
+  const lastMessage = useChatStore((state) => state.getLastMessage())
+
+  const handlePress = async () => {
+    if (!lastMessage) return
+
+    const blob = await getBlob({ chatId, messageId: lastMessage.id })
+    playBlob(blob)
+  }
+
+  return (
+    <Instruction
+      action="Press"
+      keyStr="r"
+      reaction="to replay the last message"
+      onPress={handlePress}
+    />
+  )
+}
 
 export const Instructions = {
   Record,

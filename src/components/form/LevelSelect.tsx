@@ -14,8 +14,6 @@ export function LevelSelect() {
   const level = useChatStore((state) => state.level)
   const setLevel = useChatStore((state) => state.setLevel)
 
-  console.log('LevelSelect', level)
-
   const handleValueChange = (value: Level) => {
     setLevel(value)
   }
