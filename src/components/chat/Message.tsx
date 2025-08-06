@@ -1,7 +1,14 @@
 import type { Message } from '@/shared/schema'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { User, MessageCircle, MessageSquare, Play } from 'lucide-react'
+import {
+  User,
+  MessageCircle,
+  Play,
+  MessageCircleQuestionMark,
+  MessageCircleWarning,
+  Eye,
+} from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { getUrl } from '@/lib/storage'
 import { useRef } from 'react'
@@ -14,6 +21,10 @@ function getMessageLabel(message: Message) {
       return 'Roleplay'
     case 'feedback':
       return 'Feedback'
+    case 'qa':
+      return 'QA'
+    case 'scenario':
+      return 'Scenario'
   }
 }
 
@@ -24,7 +35,11 @@ function getMessageIcon(message: Message) {
     case 'roleplay':
       return <MessageCircle className="h-4 w-4" />
     case 'feedback':
-      return <MessageSquare className="h-4 w-4" />
+      return <MessageCircleWarning className="h-4 w-4" />
+    case 'qa':
+      return <MessageCircleQuestionMark className="h-4 w-4" />
+    case 'scenario':
+      return <Eye className="h-4 w-4" />
   }
 }
 
@@ -34,11 +49,7 @@ function getMessageStyle(message: Message) {
       return {
         container: 'ml-auto max-w-[80%]',
       }
-    case 'roleplay':
-      return {
-        container: 'mr-auto max-w-[80%]',
-      }
-    case 'feedback':
+    default:
       return {
         container: 'mr-auto max-w-[80%]',
       }

@@ -1,13 +1,7 @@
 'use client'
 
 import { Kbd } from '@/components/ui/kbd'
-import {
-  useKeyPress,
-  useScenario,
-  useRecord,
-  useMessage,
-  useChatStore,
-} from '@/hooks'
+import { useKeyPress, useRecord, useMessage, useChatStore } from '@/hooks'
 import { useAudioStore } from '@/hooks/useAudioStore'
 import { getBlob } from '@/lib/storage'
 import { playBlob } from '@/lib/utils/audio'
@@ -20,24 +14,8 @@ const Record = () => {
   )
 }
 
-const GenerateScenario = () => {
-  const { generate } = useScenario()
-
-  return (
-    <Instruction
-      action="Press"
-      keyStr="g"
-      reaction="to generate a scenario"
-      onPress={generate}
-    />
-  )
-}
-
 const Submit = () => {
-  const audioBlob = useAudioStore((state) => state.audioBlob)
   const { generate } = useMessage()
-
-  if (!audioBlob) return null
 
   return (
     <Instruction
@@ -52,9 +30,9 @@ const Submit = () => {
 const Listen = () => {
   const audioBlob = useAudioStore((state) => state.audioBlob)
 
-  if (!audioBlob) return null
-
   const handlePress = () => {
+    if (!audioBlob) return
+
     playBlob(audioBlob)
   }
 
@@ -91,7 +69,6 @@ const Replay = () => {
 
 export const Instructions = {
   Record,
-  GenerateScenario,
   Submit,
   Listen,
   Replay,

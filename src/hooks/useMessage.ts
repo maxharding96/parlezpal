@@ -1,34 +1,31 @@
 import { useState } from 'react'
 import { useShallow } from 'zustand/react/shallow'
 import { useChatStore } from './useChatStore'
-import { GenerateMessageOutput } from '@/shared/schema'
+import { MessageOutput, STTOutput } from '@/shared/schema'
+import type { UserMessage } from '@/shared/schema'
 import { useAudioStore } from './useAudioStore'
 import { v4 as uuidv4 } from 'uuid'
 import { getBlob, uploadBlob } from '@/lib/storage'
 import { z } from 'zod'
+import { playBlob } from '@/lib/utils/audio'
 
 export function useMessage() {
-  const {
-    chatId,
-    language,
-    level,
-    scenario,
-    history,
-    setHistory,
-    getLastMessage,
-  } = useChatStore(
+  const { chatId, language, level, history, pushMessage } = useChatStore(
     useShallow((state) => ({
       chatId: state.chatId,
       language: state.language,
       level: state.level,
-      scenario: state.scenario,
       history: state.history,
-      setHistory: state.setHistory,
-      getLastMessage: state.getLastMessage,
+      pushMessage: state.pushMessage,
     }))
   )
 
-  const audioBlob = useAudioStore((state) => state.audioBlob)
+  const { audioBlob, setAudioBlob } = useAudioStore(
+    useShallow((state) => ({
+      audioBlob: state.audioBlob,
+      setAudioBlob: state.setAudioBlob,
+    }))
+  )
 
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [error, setError] = useState<string | null>(null)
@@ -36,7 +33,7 @@ export function useMessage() {
   const generate = async () => {
     if (isLoading) return
 
-    if (!language || !level || !scenario || !audioBlob) {
+    if (!language || !level || !audioBlob) {
       console.log(
         'Missing required parameters: language, level, scenario, or audioBlob'
       )
@@ -46,51 +43,68 @@ export function useMessage() {
     setIsLoading(true)
     setError(null)
 
-    const messageId = uuidv4()
-
     try {
+      const userMessageId = uuidv4()
+
       await uploadBlob(audioBlob, {
         chatId,
-        messageId,
+        messageId: userMessageId,
       })
 
-      const body = JSON.stringify({
-        chatId,
-        messageId,
-        scenario,
-        level,
-        language,
-        history,
-      })
-
-      const res = await fetch('/api/message/generate', {
+      const sttResponse = await fetch('/api/chat/stt', {
         method: 'POST',
-        body,
+        body: JSON.stringify({
+          chatId,
+          messageId: userMessageId,
+          language,
+        }),
       })
 
-      if (res.ok === false) {
+      if (!sttResponse.ok) {
+        throw new Error(`STT request failed: ${sttResponse.statusText}`)
+      }
+
+      const sttData = await sttResponse.json()
+
+      const sttOutput = STTOutput.parse(sttData)
+
+      const userMessage: UserMessage = {
+        type: 'user',
+        id: userMessageId,
+        content: sttOutput.message,
+      }
+
+      pushMessage(userMessage)
+      setAudioBlob(null)
+
+      const assistantMessageId = uuidv4()
+
+      const messageResponse = await fetch('/api/chat/message', {
+        method: 'POST',
+        body: JSON.stringify({
+          chatId,
+          messageId: assistantMessageId,
+          level,
+          language,
+          history: [...history, userMessage],
+        }),
+      })
+
+      if (messageResponse.ok === false) {
         throw new Error(`A network error occurred.`)
       }
 
-      const unsafeData = await res.json()
+      const messageData = await messageResponse.json()
 
-      const data = GenerateMessageOutput.parse(unsafeData)
+      const { message: assistantMessage } = MessageOutput.parse(messageData)
 
-      setHistory(data.history)
+      pushMessage(assistantMessage)
 
-      const lastMessage = getLastMessage()
-
-      console.log('Generated message:', lastMessage)
-
-      if (lastMessage) {
-        const blob = await getBlob({
-          chatId,
-          messageId: lastMessage.id,
-        })
-        const audioURL = URL.createObjectURL(blob)
-        const audio = new Audio(audioURL)
-        void audio.play()
-      }
+      // Play the audio of the message
+      await getBlob({
+        chatId,
+        messageId: assistantMessage.id,
+      }).then((blob) => playBlob(blob))
     } catch (e) {
       if (e instanceof z.ZodError) {
         setError(

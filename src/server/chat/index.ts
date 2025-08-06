@@ -1,16 +1,16 @@
 import type {
-  GenerateScenarioOutput,
-  GenerateScenarioInput,
-  GenerateMessageInput,
-  GenerateMessageOutput,
+  MessageInput,
+  MessageOutput,
+  STTInput,
+  STTOutput,
+  TTSInput,
+  TTSOutput,
 } from '@/shared/schema'
 
 export interface Chat {
-  generateMessage: (
-    input: GenerateMessageInput
-  ) => Promise<GenerateMessageOutput>
+  message: (input: MessageInput) => Promise<MessageOutput>
 
-  generateScenario: (
-    input: GenerateScenarioInput
-  ) => Promise<GenerateScenarioOutput>
+  stt: (input: STTInput) => Promise<STTOutput>
+
+  tts: (input: TTSInput) => Promise<TTSOutput>
 }
