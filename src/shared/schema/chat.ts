@@ -7,6 +7,8 @@ export const UserMessage = z.object({
   content: z.string(),
 })
 
+export type UserMessage = z.infer<typeof UserMessage>
+
 export const RoleplayMessage = z.object({
   type: z.literal('roleplay'),
   id: z.string(),
@@ -19,49 +21,79 @@ export const FeedbackMessage = z.object({
   content: z.string(),
 })
 
+export const QAMessage = z.object({
+  type: z.literal('qa'),
+  id: z.string(),
+  content: z.string(),
+})
+
+export const ScenarioMessage = z.object({
+  type: z.literal('scenario'),
+  id: z.string(),
+  content: z.string(),
+})
+
 export const AssitantMessage = z.discriminatedUnion('type', [
   RoleplayMessage,
   FeedbackMessage,
+  QAMessage,
+  ScenarioMessage,
 ])
 
 export const Message = z.discriminatedUnion('type', [
   UserMessage,
   RoleplayMessage,
   FeedbackMessage,
+  QAMessage,
+  ScenarioMessage,
 ])
 
 export type Message = z.infer<typeof Message>
 
-export const GenerateScenarioInput = z.object({
-  language: Language,
-  level: Level,
-})
-
-export type GenerateScenarioInput = z.infer<typeof GenerateScenarioInput>
-
-export const GenerateScenarioOutput = z.object({
-  scenario: z.string(),
-})
-
-export type GenerateScenarioOutput = z.infer<typeof GenerateScenarioOutput>
-
-export const GenerateMessageInput = z.object({
+export const MessageInput = z.object({
   chatId: z.string(),
-  messageId: z.string(),
-  scenario: z.string(),
   language: Language,
   level: Level,
   history: z.array(Message),
 })
 
-export type GenerateMessageInput = z.infer<typeof GenerateMessageInput>
+export type MessageInput = z.infer<typeof MessageInput>
 
-export const GenerateMessageOutput = z.object({
-  history: z.array(Message),
-})
-
-export type GenerateMessageOutput = z.infer<typeof GenerateMessageOutput>
-
-export const GenerateMessageEvent = z.object({
+export const MessageOutput = z.object({
   message: AssitantMessage,
 })
+
+export type MessageOutput = z.infer<typeof MessageOutput>
+
+export const MessageEvent = z.object({
+  type: z.enum(['roleplay', 'feedback', 'qa', 'scenario']),
+  content: z.string(),
+})
+
+export const STTInput = z.object({
+  chatId: z.string(),
+  messageId: z.string(),
+  language: Language,
+})
+
+export type STTInput = z.infer<typeof STTInput>
+
+export const STTOutput = z.object({
+  message: z.string(),
+})
+
+export type STTOutput = z.infer<typeof STTOutput>
+
+export const TTSInput = z.object({
+  chatId: z.string(),
+  message: z.string(),
+  language: Language,
+})
+
+export type TTSInput = z.infer<typeof TTSInput>
+
+export const TTSOutput = z.object({
+  messageId: z.string(),
+})
+
+export type TTSOutput = z.infer<typeof TTSOutput>

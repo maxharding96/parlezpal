@@ -1,7 +1,6 @@
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { ChatMessage } from './Message'
 import { useChatStore } from '@/hooks'
-import { Scenario } from './Scenario'
 
 export function ChatDisplay() {
   const chatId = useChatStore((state) => state.chatId)
@@ -9,7 +8,6 @@ export function ChatDisplay() {
 
   return (
     <div className="flex h-full flex-col">
-      <Scenario />
       <ScrollArea className="flex-1 overflow-hidden px-4">
         <div className="space-y-4">
           {history.length === 0 ? (
