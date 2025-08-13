@@ -47,11 +47,30 @@ function getMessageStyle(message: Message) {
   switch (message.type) {
     case 'user':
       return {
-        container: 'ml-auto max-w-[80%]',
+        container: 'ml-auto',
       }
-    default:
+    case 'roleplay':
       return {
-        container: 'mr-auto max-w-[80%]',
+        container: 'mr-auto',
+        card: 'bg-stone-50',
+      }
+    case 'feedback':
+      return {
+        container: 'mr-auto',
+        card: 'bg-lime-50',
+        label: 'bg-lime-100',
+      }
+    case 'qa':
+      return {
+        container: 'mr-auto',
+        card: 'bg-emerald-50',
+        label: 'bg-emerald-100',
+      }
+    case 'scenario':
+      return {
+        container: 'mr-auto',
+        card: 'bg-green-50',
+        label: 'bg-green-100',
       }
   }
 }
@@ -85,12 +104,14 @@ export function ChatMessage(props: ChatMessageProps) {
     <div
       className={`flex max-w-[80%] ${styles.container} first:mt-4 last:mb-4`}
     >
-      <Card className="w-full">
+      <Card className={`w-full ${styles.card}`}>
         <CardContent>
           <div className="mb-2 flex items-center justify-between">
             <div className="flex items-center gap-2">
               {getMessageIcon(message)}
-              <Badge variant="secondary">{getMessageLabel(message)}</Badge>
+              <Badge variant="secondary" className={styles.label}>
+                {getMessageLabel(message)}
+              </Badge>
             </div>
             <audio ref={audioRef} src={url} />
             <Button
