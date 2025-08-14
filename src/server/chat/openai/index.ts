@@ -10,11 +10,12 @@ import type {
   STTInput,
   STTOutput,
 } from '@/shared/schema'
-import { MessageEvent, languageToCode } from '@/shared/schema'
+import { MessageEvent } from '@/shared/schema'
 import type { ResponseInput } from 'openai/resources/responses/responses'
 import {
   buildGenerateMessageInstructions,
-  buildTranscriptionPrompt,
+  buildStudentPrompt,
+  buildTutorPrompt,
 } from './instructions'
 import { v4 as uuidv4 } from 'uuid'
 import { getUrl, putBlob } from '@/lib/storage'
@@ -30,7 +31,10 @@ export class OpenAIChat implements Chat {
     const { chatId, history } = input
 
     const response = await this.client.responses.parse({
-      model: 'gpt-4.1-nano',
+      model: 'gpt-5-nano',
+      reasoning: {
+        effort: 'low',
+      },
       temperature: 0.7,
       instructions: buildGenerateMessageInstructions(input),
       input: this.formatHistory(history),
@@ -72,8 +76,7 @@ export class OpenAIChat implements Chat {
     const transcription = await this.client.audio.transcriptions.create({
       file: audio,
       model: 'gpt-4o-mini-transcribe',
-      language: languageToCode[language],
-      prompt: buildTranscriptionPrompt({ language }),
+      prompt: buildStudentPrompt({ language }),
     })
 
     return { message: transcription.text }
@@ -89,9 +92,7 @@ export class OpenAIChat implements Chat {
         model: 'gpt-4o-mini-tts',
         input: message,
         voice: 'alloy',
-        instructions: buildTranscriptionPrompt({
-          language,
-        }),
+        instructions: buildTutorPrompt({ language }),
       })
       .then((response) => {
         if (!response.ok) {
