@@ -12,7 +12,7 @@ import { InstructionsDisplay } from '@/components/instructions'
 export default function HomePage() {
   return (
     <main className="flex h-full flex-col items-center justify-center">
-      <div className="w-full px-8 py-4 shadow">
+      <div className="z-10 w-full px-8 py-4 shadow">
         <h1 className="text-left text-4xl font-bold">ParlerPal</h1>
       </div>
       <ResizablePanelGroup direction="horizontal">

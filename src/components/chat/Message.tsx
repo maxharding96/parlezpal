@@ -1,4 +1,5 @@
 import type { Message } from '@/shared/schema'
+import { cn } from '@/lib/utils/styles'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import {
@@ -43,15 +44,36 @@ function getMessageIcon(message: Message) {
   }
 }
 
-function getMessageStyle(message: Message) {
+function getMessageStyle(message: Message, showMessages: boolean) {
   switch (message.type) {
     case 'user':
       return {
-        container: 'ml-auto max-w-[80%]',
+        container: 'ml-auto',
       }
-    default:
+    case 'roleplay':
       return {
-        container: 'mr-auto max-w-[80%]',
+        container: 'mr-auto',
+        card: 'bg-stone-50',
+        label: 'bg-stone-100',
+        text: showMessages ? '' : 'bg-stone-100 text-stone-100 select-none',
+      }
+    case 'feedback':
+      return {
+        container: 'mr-auto',
+        card: 'bg-lime-50',
+        label: 'bg-lime-100',
+      }
+    case 'qa':
+      return {
+        container: 'mr-auto',
+        card: 'bg-emerald-50',
+        label: 'bg-emerald-100',
+      }
+    case 'scenario':
+      return {
+        container: 'mr-auto',
+        card: 'bg-green-50',
+        label: 'bg-green-100',
       }
   }
 }
@@ -59,10 +81,11 @@ function getMessageStyle(message: Message) {
 interface ChatMessageProps {
   chatId: string
   message: Message
+  showMessages: boolean
 }
 
 export function ChatMessage(props: ChatMessageProps) {
-  const { chatId, message } = props
+  const { chatId, message, showMessages } = props
 
   const url = getUrl({
     chatId,
@@ -79,18 +102,23 @@ export function ChatMessage(props: ChatMessageProps) {
     }
   }
 
-  const styles = getMessageStyle(message)
+  const styles = getMessageStyle(message, showMessages)
 
   return (
     <div
-      className={`flex max-w-[80%] ${styles.container} first:mt-4 last:mb-4`}
+      className={cn(
+        'z-0 flex max-w-[80%] pt-4 first:mt-4 last:mb-4',
+        styles.container
+      )}
     >
-      <Card className="w-full">
+      <Card className={`w-full ${styles.card}`}>
         <CardContent>
           <div className="mb-2 flex items-center justify-between">
             <div className="flex items-center gap-2">
               {getMessageIcon(message)}
-              <Badge variant="secondary">{getMessageLabel(message)}</Badge>
+              <Badge variant="secondary" className={styles.label}>
+                {getMessageLabel(message)}
+              </Badge>
             </div>
             <audio ref={audioRef} src={url} />
             <Button
@@ -102,7 +130,12 @@ export function ChatMessage(props: ChatMessageProps) {
               <Play className="h-4 w-4" />
             </Button>
           </div>
-          <p className="text-sm leading-relaxed whitespace-pre-wrap">
+          <p
+            className={cn(
+              'inline-block rounded-sm text-sm leading-relaxed whitespace-pre-wrap',
+              styles.text
+            )}
+          >
             {message.content}
           </p>
         </CardContent>

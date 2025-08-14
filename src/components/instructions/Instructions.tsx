@@ -5,12 +5,15 @@ import { useKeyPress, useRecord, useMessage, useChatStore } from '@/hooks'
 import { useAudioStore } from '@/hooks/useAudioStore'
 import { getBlob } from '@/lib/storage'
 import { playBlob } from '@/lib/utils/audio'
+import { toast } from 'sonner'
 
 const Record = () => {
-  useRecord()
+  useRecord({
+    onRecordingComplete: () => toast.success('Recording saved.'),
+  })
 
   return (
-    <Instruction action="Hold" keyStr=" " reaction="to record your response" />
+    <Instruction action="Hold" keyStr=" " reaction="to record your message" />
   )
 }
 
@@ -21,7 +24,7 @@ const Submit = () => {
     <Instruction
       action="Press"
       keyStr="Enter"
-      reaction="to submit your response"
+      reaction="to submit your message"
       onPress={generate}
     />
   )
@@ -31,7 +34,10 @@ const Listen = () => {
   const audioBlob = useAudioStore((state) => state.audioBlob)
 
   const handlePress = () => {
-    if (!audioBlob) return
+    if (!audioBlob) {
+      toast.error('No audio recorded yet.')
+      return
+    }
 
     playBlob(audioBlob)
   }
@@ -40,7 +46,7 @@ const Listen = () => {
     <Instruction
       action="Press"
       keyStr="p"
-      reaction="to play back to your recording"
+      reaction="to play back your message"
       onPress={handlePress}
     />
   )
@@ -51,7 +57,10 @@ const Replay = () => {
   const lastMessage = useChatStore((state) => state.getLastMessage())
 
   const handlePress = async () => {
-    if (!lastMessage) return
+    if (!lastMessage) {
+      toast.error('No messages to replay.')
+      return
+    }
 
     const blob = await getBlob({ chatId, messageId: lastMessage.id })
     playBlob(blob)
