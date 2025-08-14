@@ -1,4 +1,4 @@
-import type { Chat } from '@/server/chat'
+import type { IChat, ISpeech } from '@/server/clients/schema'
 import OpenAI from 'openai'
 import { zodTextFormat } from 'openai/helpers/zod'
 import type {
@@ -10,7 +10,7 @@ import type {
   STTInput,
   STTOutput,
 } from '@/shared/schema'
-import { MessageEvent } from '@/shared/schema'
+import { MessageOutput as MessageEvent } from '@/shared/schema'
 import type { ResponseInput } from 'openai/resources/responses/responses'
 import {
   buildGenerateMessageInstructions,
@@ -20,7 +20,7 @@ import {
 import { v4 as uuidv4 } from 'uuid'
 import { getUrl, putBlob } from '@/lib/storage'
 
-export class OpenAIChat implements Chat {
+export class OpenAIClient implements IChat, ISpeech {
   private client: OpenAI
 
   constructor({ apiKey }: { apiKey: string }) {
@@ -28,13 +28,10 @@ export class OpenAIChat implements Chat {
   }
 
   async message(input: MessageInput): Promise<MessageOutput> {
-    const { chatId, history } = input
+    const { history } = input
 
     const response = await this.client.responses.parse({
-      model: 'gpt-5-nano',
-      reasoning: {
-        effort: 'low',
-      },
+      model: 'gpt-4o-mini',
       temperature: 0.7,
       instructions: buildGenerateMessageInstructions(input),
       input: this.formatHistory(history),
@@ -49,18 +46,7 @@ export class OpenAIChat implements Chat {
       throw new Error('No message returned from OpenAI')
     }
 
-    const { messageId } = await this.tts({
-      ...input,
-      message: event.content,
-      chatId,
-    })
-
-    const message = {
-      ...event,
-      id: messageId,
-    }
-
-    return { message }
+    return event
   }
 
   async stt(input: STTInput): Promise<STTOutput> {
@@ -73,17 +59,22 @@ export class OpenAIChat implements Chat {
 
     const audio = await fetch(url)
 
-    const transcription = await this.client.audio.transcriptions.create({
+    const transcript = await this.client.audio.transcriptions.create({
       file: audio,
       model: 'gpt-4o-mini-transcribe',
-      prompt: buildStudentPrompt({ language }),
+      // language: languageToCode[language],
+      prompt: buildStudentPrompt({
+        language,
+        prevMessage:
+          "Très bien ! Donc, un croissant et une tasse de thé. Cela fait 5 euros, s'il vous plaît. Comment allez-vous payer ?",
+      }),
     })
 
-    return { message: transcription.text }
+    return { message: transcript.text }
   }
 
   async tts(input: TTSInput): Promise<TTSOutput> {
-    const { chatId, message, language } = input
+    const { chatId, message, language, prevMessage } = input
 
     const messageId = uuidv4()
 
@@ -92,7 +83,7 @@ export class OpenAIChat implements Chat {
         model: 'gpt-4o-mini-tts',
         input: message,
         voice: 'alloy',
-        instructions: buildTutorPrompt({ language }),
+        instructions: buildTutorPrompt({ language, prevMessage }),
       })
       .then((response) => {
         if (!response.ok) {
@@ -115,15 +106,20 @@ export class OpenAIChat implements Chat {
     for (let i = messages.length - 1; i >= 0; i--) {
       const message = messages[i]!
 
+      const content = JSON.stringify({
+        type: message.type,
+        content: message.content,
+      })
+
       if (message.type === 'user') {
         history.push({
           role: 'user',
-          content: message.content,
+          content,
         })
       } else {
         history.push({
           role: 'assistant',
-          content: message.content,
+          content,
         })
       }
 

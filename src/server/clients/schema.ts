@@ -7,9 +7,11 @@ import type {
   TTSOutput,
 } from '@/shared/schema'
 
-export interface Chat {
+export interface IChat {
   message: (input: MessageInput) => Promise<MessageOutput>
+}
 
+export interface ISpeech {
   stt: (input: STTInput) => Promise<STTOutput>
 
   tts: (input: TTSInput) => Promise<TTSOutput>

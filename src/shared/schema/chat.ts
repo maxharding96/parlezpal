@@ -51,7 +51,6 @@ export const Message = z.discriminatedUnion('type', [
 export type Message = z.infer<typeof Message>
 
 export const MessageInput = z.object({
-  chatId: z.string(),
   language: Language,
   level: Level,
   history: z.array(Message),
@@ -60,40 +59,12 @@ export const MessageInput = z.object({
 export type MessageInput = z.infer<typeof MessageInput>
 
 export const MessageOutput = z.object({
-  message: AssitantMessage,
-})
-
-export type MessageOutput = z.infer<typeof MessageOutput>
-
-export const MessageEvent = z.object({
   type: z.enum(['roleplay', 'feedback', 'qa', 'scenario']),
   content: z.string(),
 })
 
-export const STTInput = z.object({
-  chatId: z.string(),
-  messageId: z.string(),
-  language: Language,
-})
+export type MessageOutput = z.infer<typeof MessageOutput>
 
-export type STTInput = z.infer<typeof STTInput>
+export const ChatClient = z.enum(['openai'])
 
-export const STTOutput = z.object({
-  message: z.string(),
-})
-
-export type STTOutput = z.infer<typeof STTOutput>
-
-export const TTSInput = z.object({
-  chatId: z.string(),
-  message: z.string(),
-  language: Language,
-})
-
-export type TTSInput = z.infer<typeof TTSInput>
-
-export const TTSOutput = z.object({
-  messageId: z.string(),
-})
-
-export type TTSOutput = z.infer<typeof TTSOutput>
+export type ChatClient = z.infer<typeof ChatClient>

@@ -19,7 +19,7 @@ export function Actions(props: ActionsProps) {
   const resetHistory = useChatStore((state) => state.resetHistory)
 
   return (
-    <div className="absolute z-10 flex items-center justify-between gap-2 p-4">
+    <div className="absolute top-4 z-10 flex items-center justify-between gap-2 rounded-md bg-white shadow">
       <Tooltip>
         <TooltipTrigger>
           <Toggle className="h-10 w-10" onClick={toggleShowMessages}>

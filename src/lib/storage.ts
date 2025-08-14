@@ -7,6 +7,7 @@ import type {
 } from '@/shared/schema/storage'
 import { put } from '@vercel/blob'
 import { upload } from '@vercel/blob/client'
+import type { P } from 'node_modules/@vercel/blob/dist/create-folder-C02EFEPE'
 
 const BASE_URL = 'https://u7rkby4ryvnn0orc.public.blob.vercel-storage.com'
 const CONTENT_TYPE = 'audio/webm'
@@ -26,7 +27,7 @@ export async function getBuffer(params: GetBufferParams) {
   return response.arrayBuffer()
 }
 
-export function putBlob(blob: Blob, params: PutBlobParams) {
+export function putBlob(blob: P, params: PutBlobParams) {
   const path = formatMessagePrefix(params) + '/audio.webm'
 
   return put(path, blob, {

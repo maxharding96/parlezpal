@@ -1,14 +1,28 @@
 import { useState } from 'react'
 import { useShallow } from 'zustand/react/shallow'
 import { useChatStore } from './useChatStore'
-import { MessageOutput, STTOutput } from '@/shared/schema'
-import type { UserMessage } from '@/shared/schema'
+import { MessageOutput, STTOutput, TTSOutput } from '@/shared/schema'
+import type { Message, UserMessage } from '@/shared/schema'
 import { useAudioStore } from './useAudioStore'
 import { v4 as uuidv4 } from 'uuid'
 import { getBlob, uploadBlob } from '@/lib/storage'
 import { z } from 'zod'
 import { playBlob } from '@/lib/utils/audio'
 import { toast } from 'sonner'
+
+class ValidationError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'ValidationError'
+  }
+}
+
+class NetworkError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'NetworkError'
+  }
+}
 
 export function useMessage() {
   const { chatId, language, level, history, pushMessage, getLastMessage } =
@@ -33,108 +47,180 @@ export function useMessage() {
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [error, setError] = useState<string | null>(null)
 
-  const generate = async () => {
-    if (isLoading) return
-
+  // Early validation helper
+  const validateRequirements = (): boolean => {
     if (!language) {
       toast.error('Please select a language.')
-      return
+      return false
     }
 
     if (!level) {
       toast.error('Please select a level.')
-      return
+      return false
     }
 
     const lastMessage = getLastMessage()
-    if (!lastMessage) {
-      return
+    if (!audioBlob && lastMessage?.type !== 'user') {
+      toast.error('Please record a message first.')
+      return false
     }
 
-    // Check if the last message is a user message for retrying
-    if (!audioBlob && lastMessage.type !== 'user') {
-      toast.error('Please record a message first.')
-      return
+    return true
+  }
+
+  // Process speech-to-text
+  const processSTT = async (userMessageId: string, localHistory: Message[]) => {
+    if (!audioBlob) return
+
+    await uploadBlob(audioBlob, {
+      chatId,
+      messageId: userMessageId,
+    })
+
+    const sttResponse = await fetch('/api/speech/stt', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        client: 'openai',
+        chatId,
+        messageId: userMessageId,
+        language,
+      }),
+    })
+
+    if (!sttResponse.ok) {
+      throw new NetworkError(`STT request failed: ${sttResponse.statusText}`)
     }
+
+    const sttData = await sttResponse.json()
+    const sttOutput = STTOutput.parse(sttData)
+
+    const userMessage: UserMessage = {
+      type: 'user',
+      id: userMessageId,
+      content: sttOutput.message,
+    }
+
+    localHistory.push(userMessage)
+    pushMessage(userMessage)
+    setAudioBlob(null)
+  }
+
+  // Generate assistant message
+  const generateAssistantMessage = async (localHistory: Message[]) => {
+    const messageResponse = await fetch('/api/chat/message', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chatId,
+        level,
+        language,
+        history: localHistory,
+      }),
+    })
+
+    if (!messageResponse.ok) {
+      throw new NetworkError(
+        `Message generation failed: ${messageResponse.statusText}`
+      )
+    }
+
+    const messageData = await messageResponse.json()
+    return MessageOutput.parse(messageData)
+  }
+
+  // Process text-to-speech
+  const processTTS = async (messageContent: string) => {
+    const ttsResponse = await fetch('/api/speech/tts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        client: 'openai',
+        chatId,
+        message: messageContent,
+        language,
+      }),
+    })
+
+    if (!ttsResponse.ok) {
+      throw new NetworkError(`TTS request failed: ${ttsResponse.statusText}`)
+    }
+
+    const ttsData = await ttsResponse.json()
+    return TTSOutput.parse(ttsData)
+  }
+
+  // Play assistant audio
+  const playAssistantAudio = async (messageId: string) => {
+    try {
+      const blob = await getBlob({
+        chatId,
+        messageId,
+      })
+      void playBlob(blob)
+    } catch (error) {
+      console.warn('Failed to play audio:', error)
+      // Don't throw here - audio playback failure shouldn't break the flow
+    }
+  }
+
+  // Error handling helper
+  const handleError = (error: unknown) => {
+    console.error('Message generation error:', error)
+
+    if (error instanceof z.ZodError) {
+      const message = `Validation error: ${error.errors.map((err) => err.message).join(', ')}`
+      setError(message)
+      toast.error(message)
+    } else if (error instanceof ValidationError) {
+      setError(error.message)
+      toast.error(error.message)
+    } else if (error instanceof NetworkError) {
+      setError(error.message)
+      toast.error('Network error occurred. Please try again.')
+    } else if (error instanceof Error) {
+      setError(error.message)
+      toast.error('An unexpected error occurred.')
+    } else {
+      const message = 'An unknown error occurred'
+      setError(message)
+      toast.error(message)
+    }
+  }
+
+  const generate = async () => {
+    // Prevent concurrent requests
+    if (isLoading) return
+
+    // Early validation
+    if (!validateRequirements()) return
 
     setIsLoading(true)
     setError(null)
 
     try {
       const userMessageId = uuidv4()
+      const localHistory = [...history]
 
-      if (audioBlob) {
-        await uploadBlob(audioBlob, {
-          chatId,
-          messageId: userMessageId,
-        })
+      // Process speech-to-text if audio is available
+      await processSTT(userMessageId, localHistory)
 
-        const sttResponse = await fetch('/api/chat/stt', {
-          method: 'POST',
-          body: JSON.stringify({
-            chatId,
-            messageId: userMessageId,
-            language,
-          }),
-        })
+      // Generate assistant message
+      const output = await generateAssistantMessage(localHistory)
 
-        if (!sttResponse.ok) {
-          throw new Error(`STT request failed: ${sttResponse.statusText}`)
-        }
+      // Process text-to-speech
+      const { messageId: assistantMessageId } = await processTTS(output.content)
 
-        const sttData = await sttResponse.json()
-
-        const sttOutput = STTOutput.parse(sttData)
-
-        const userMessage: UserMessage = {
-          type: 'user',
-          id: userMessageId,
-          content: sttOutput.message,
-        }
-
-        history.push(userMessage)
-        pushMessage(userMessage)
-        setAudioBlob(null)
-      }
-
-      const assistantMessageId = uuidv4()
-
-      const messageResponse = await fetch('/api/chat/message', {
-        method: 'POST',
-        body: JSON.stringify({
-          chatId,
-          messageId: assistantMessageId,
-          level,
-          language,
-          history,
-        }),
+      // Add assistant message to chat
+      pushMessage({
+        id: assistantMessageId,
+        ...output,
       })
 
-      if (messageResponse.ok === false) {
-        throw new Error(`A network error occurred.`)
-      }
-
-      const messageData = await messageResponse.json()
-
-      const { message: assistantMessage } = MessageOutput.parse(messageData)
-
-      pushMessage(assistantMessage)
-
-      // Play the audio of the message
-      await getBlob({
-        chatId,
-        messageId: assistantMessage.id,
-      }).then((blob) => playBlob(blob))
-    } catch (e) {
-      toast.error('Failed to send message.')
-
-      if (e instanceof z.ZodError) {
-        setError(
-          `Validation error: ${e.errors.map((err) => err.message).join(', ')}`
-        )
-      } else if (e instanceof Error) {
-        setError(e.message)
-      }
+      // Play the audio (non-blocking)
+      await playAssistantAudio(assistantMessageId)
+    } catch (error) {
+      handleError(error)
     } finally {
       setIsLoading(false)
     }

@@ -25,9 +25,9 @@ export const useChatStore = create<ChatStore>()(
       level: null,
       setLevel: (level) => set({ level }),
       history: [],
-      pushMessage: (history) => {
+      pushMessage: (message) => {
         set((state) => ({
-          history: [...state.history, history],
+          history: [...state.history, message],
         }))
       },
       getLastMessage: () => {

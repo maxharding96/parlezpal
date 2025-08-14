@@ -18,7 +18,7 @@ export const buildGenerateMessageInstructions = ({
   - They speak English fluently
 
   ## 🎯 Goal
-  - Help the student improve their **${language}** speaking and listening skills
+  - Help the student improve their **${language}** language skills
   - This will primarily be through roleplay, where you and the student will take on roles in a realistic situation
   - You will be there to roleplay with the student, correct their mistakes and answer any language questions as needed
   
@@ -42,7 +42,8 @@ export const buildGenerateMessageInstructions = ({
   - Always write the scenario in English
   - Make sure the scenario is suitable for the student's level (${level})
   - Make it clear the roles you will play & the student will play
-  - Never instruct what the student should say; allow them to decide
+  - Keep the scenario concise & open-ended to allow for natural conversation
+  - **Never** tell the student what to say or do
 
   2. Roleplay
 
@@ -85,16 +86,42 @@ export const buildGenerateMessageInstructions = ({
   - Provide a clear, concise answer
 `
 
-export const buildTutorPrompt = ({ language }: { language: Language }) =>
-  [
-    `You are a professional, friendly, and supportive **${language}** language tutor.`,
-    `You are fluent in both **${language}** and **English**.`,
-    `You are helping a student improve their **${language}** speaking and listening skills.`,
-  ].join('\n')
+export const buildTutorPrompt = ({
+  language,
+  prevMessage,
+}: {
+  language: Language
+  prevMessage: string | undefined
+}) => {
+  let prompt = [
+    `This is a recording of a ${language} language tutor speaking to their student.`,
+    `The tutor is helping the student practice their speaking skills in ${language} by roleplaying with them.`,
+    `They may also be responding to questions from student or giving feedback which will be in English.`,
+  ].join(' ')
 
-export const buildStudentPrompt = ({ language }: { language: Language }) =>
-  [
-    `You are a student learning **${language}**.`,
-    `You are fluent in **English**.`,
-    `You are trying to improve your **${language}** speaking and listening skills with the help of a tutor.`,
-  ].join('\n')
+  if (prevMessage) {
+    prompt += `\n\nThe tutor is responding to their student who just said: "${prevMessage}"`
+  }
+
+  return prompt
+}
+
+export const buildStudentPrompt = ({
+  language,
+  prevMessage,
+}: {
+  language: Language
+  prevMessage: string | undefined
+}) => {
+  let prompt = [
+    `This is a recording of a student speaking to their ${language} language tutor.`,
+    `The student will be practicing their speaking skills in ${language} by roleplaying with their tutor.`,
+    `They may also be asking questions about ${language} or the roleplay scenario which will be in English.`,
+  ].join(' ')
+
+  if (prevMessage) {
+    prompt += `\n\nThe student is responding to their tutor who just said: "${prevMessage}"`
+  }
+
+  return prompt
+}
