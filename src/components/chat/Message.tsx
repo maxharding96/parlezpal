@@ -55,28 +55,25 @@ function getMessageStyle(message: Message, showMessages: boolean) {
         container: 'mr-auto',
         card: 'bg-stone-50',
         label: 'bg-stone-100',
-        text: showMessages ? '' : 'bg-stone-200 text-stone-200 select-none',
+        text: showMessages ? '' : 'bg-stone-100 text-stone-100 select-none',
       }
     case 'feedback':
       return {
         container: 'mr-auto',
         card: 'bg-lime-50',
         label: 'bg-lime-100',
-        text: showMessages ? '' : 'bg-lime-200 text-lime-200 select-none',
       }
     case 'qa':
       return {
         container: 'mr-auto',
         card: 'bg-emerald-50',
         label: 'bg-emerald-100',
-        text: showMessages ? '' : 'bg-emerald-200 text-emerald-200 select-none',
       }
     case 'scenario':
       return {
         container: 'mr-auto',
         card: 'bg-green-50',
         label: 'bg-green-100',
-        text: showMessages ? '' : 'bg-green-200 text-green-200 select-none',
       }
   }
 }
@@ -109,7 +106,10 @@ export function ChatMessage(props: ChatMessageProps) {
 
   return (
     <div
-      className={cn('flex max-w-[80%] first:mt-4 last:mb-4', styles.container)}
+      className={cn(
+        'z-0 flex max-w-[80%] pt-4 first:mt-4 last:mb-4',
+        styles.container
+      )}
     >
       <Card className={`w-full ${styles.card}`}>
         <CardContent>

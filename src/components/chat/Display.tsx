@@ -18,7 +18,7 @@ export function ChatDisplay() {
             <div className="text-muted-foreground flex items-center justify-center p-16">
               <p>
                 Get started by suggesting a scenario to practice or ask your
-                tutor to come with one for you.
+                tutor to come up with one for you.
               </p>
             </div>
           ) : (

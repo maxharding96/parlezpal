@@ -8,17 +8,20 @@ import { v4 as uuidv4 } from 'uuid'
 import { getBlob, uploadBlob } from '@/lib/storage'
 import { z } from 'zod'
 import { playBlob } from '@/lib/utils/audio'
+import { toast } from 'sonner'
 
 export function useMessage() {
-  const { chatId, language, level, history, pushMessage } = useChatStore(
-    useShallow((state) => ({
-      chatId: state.chatId,
-      language: state.language,
-      level: state.level,
-      history: state.history,
-      pushMessage: state.pushMessage,
-    }))
-  )
+  const { chatId, language, level, history, pushMessage, getLastMessage } =
+    useChatStore(
+      useShallow((state) => ({
+        chatId: state.chatId,
+        language: state.language,
+        level: state.level,
+        history: state.history,
+        pushMessage: state.pushMessage,
+        getLastMessage: state.getLastMessage,
+      }))
+    )
 
   const { audioBlob, setAudioBlob } = useAudioStore(
     useShallow((state) => ({
@@ -33,10 +36,24 @@ export function useMessage() {
   const generate = async () => {
     if (isLoading) return
 
-    if (!language || !level || !audioBlob) {
-      console.log(
-        'Missing required parameters: language, level, scenario, or audioBlob'
-      )
+    if (!language) {
+      toast.error('Please select a language.')
+      return
+    }
+
+    if (!level) {
+      toast.error('Please select a level.')
+      return
+    }
+
+    const lastMessage = getLastMessage()
+    if (!lastMessage) {
+      return
+    }
+
+    // Check if the last message is a user message for retrying
+    if (!audioBlob && lastMessage.type !== 'user') {
+      toast.error('Please record a message first.')
       return
     }
 
@@ -46,36 +63,39 @@ export function useMessage() {
     try {
       const userMessageId = uuidv4()
 
-      await uploadBlob(audioBlob, {
-        chatId,
-        messageId: userMessageId,
-      })
-
-      const sttResponse = await fetch('/api/chat/stt', {
-        method: 'POST',
-        body: JSON.stringify({
+      if (audioBlob) {
+        await uploadBlob(audioBlob, {
           chatId,
           messageId: userMessageId,
-          language,
-        }),
-      })
+        })
 
-      if (!sttResponse.ok) {
-        throw new Error(`STT request failed: ${sttResponse.statusText}`)
+        const sttResponse = await fetch('/api/chat/stt', {
+          method: 'POST',
+          body: JSON.stringify({
+            chatId,
+            messageId: userMessageId,
+            language,
+          }),
+        })
+
+        if (!sttResponse.ok) {
+          throw new Error(`STT request failed: ${sttResponse.statusText}`)
+        }
+
+        const sttData = await sttResponse.json()
+
+        const sttOutput = STTOutput.parse(sttData)
+
+        const userMessage: UserMessage = {
+          type: 'user',
+          id: userMessageId,
+          content: sttOutput.message,
+        }
+
+        history.push(userMessage)
+        pushMessage(userMessage)
+        setAudioBlob(null)
       }
-
-      const sttData = await sttResponse.json()
-
-      const sttOutput = STTOutput.parse(sttData)
-
-      const userMessage: UserMessage = {
-        type: 'user',
-        id: userMessageId,
-        content: sttOutput.message,
-      }
-
-      pushMessage(userMessage)
-      setAudioBlob(null)
 
       const assistantMessageId = uuidv4()
 
@@ -86,7 +106,7 @@ export function useMessage() {
           messageId: assistantMessageId,
           level,
           language,
-          history: [...history, userMessage],
+          history,
         }),
       })
 
@@ -106,6 +126,8 @@ export function useMessage() {
         messageId: assistantMessage.id,
       }).then((blob) => playBlob(blob))
     } catch (e) {
+      toast.error('Failed to send message.')
+
       if (e instanceof z.ZodError) {
         setError(
           `Validation error: ${e.errors.map((err) => err.message).join(', ')}`

@@ -22,7 +22,14 @@ export default function RootLayout({
     <html lang="en" className={`${geist.variable} h-full`}>
       <body className="h-full">
         {children}
-        <Toaster />
+        <Toaster
+          position="top-right"
+          toastOptions={{
+            style: {
+              fontSize: '14px',
+            },
+          }}
+        />
       </body>
     </html>
   )
