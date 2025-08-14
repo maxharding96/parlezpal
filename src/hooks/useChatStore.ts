@@ -12,7 +12,7 @@ interface ChatStore {
   history: Message[]
   pushMessage: (message: Message) => void
   getLastMessage: () => Message | null
-  reset: () => void
+  resetHistory: () => void
 }
 
 export const useChatStore = create<ChatStore>()(
@@ -34,13 +34,7 @@ export const useChatStore = create<ChatStore>()(
         const { history } = get()
         return history.length > 0 ? history[history.length - 1]! : null
       },
-      reset: () =>
-        set({
-          chatId: uuidv4(),
-          language: null,
-          level: null,
-          history: [],
-        }),
+      resetHistory: () => set({ history: [] }),
     }),
     {
       name: 'chat-history',
