@@ -10,7 +10,7 @@ const Record = () => {
   useRecord()
 
   return (
-    <Instruction action="Hold" keyStr=" " reaction="to record your response" />
+    <Instruction action="Hold" keyStr=" " reaction="to record your message" />
   )
 }
 
@@ -21,7 +21,7 @@ const Submit = () => {
     <Instruction
       action="Press"
       keyStr="Enter"
-      reaction="to submit your response"
+      reaction="to submit your message"
       onPress={generate}
     />
   )
@@ -40,7 +40,7 @@ const Listen = () => {
     <Instruction
       action="Press"
       keyStr="p"
-      reaction="to play back to your recording"
+      reaction="to play back to your message"
       onPress={handlePress}
     />
   )
