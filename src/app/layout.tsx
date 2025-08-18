@@ -5,7 +5,7 @@ import { Geist } from 'next/font/google'
 import { Toaster } from '@/components/ui/sonner'
 
 export const metadata: Metadata = {
-  title: 'ParlerPal',
+  title: 'ParlezPal',
   description: 'Your AI language tutor',
   icons: [{ rel: 'icon', url: '/favicon.ico' }],
 }
