@@ -9,17 +9,20 @@ import {
 } from '@/components/ui/tooltip'
 
 interface ActionsProps {
+  showActions: boolean
   showMessages: boolean
   toggleShowMessages: () => void
 }
 
 export function Actions(props: ActionsProps) {
-  const { showMessages, toggleShowMessages } = props
+  const { showActions, showMessages, toggleShowMessages } = props
 
   const resetHistory = useChatStore((state) => state.resetHistory)
 
+  if (!showActions) return null
+
   return (
-    <div className="absolute top-4 z-10 flex items-center justify-between gap-2 rounded-md bg-white shadow">
+    <div className="absolute top-4 left-4 z-10 flex items-center justify-between gap-2 rounded-md bg-white shadow">
       <Tooltip>
         <TooltipTrigger>
           <Toggle className="h-10 w-10" onClick={toggleShowMessages}>
@@ -27,7 +30,11 @@ export function Actions(props: ActionsProps) {
           </Toggle>
         </TooltipTrigger>
         <TooltipContent>
-          <p>{showMessages ? 'Hide messages' : 'Show messages'}</p>
+          <p>
+            {showMessages
+              ? 'Hide "Roleplay" messages'
+              : 'Show "Roleplay" messages'}
+          </p>
         </TooltipContent>
       </Tooltip>
       <Tooltip>

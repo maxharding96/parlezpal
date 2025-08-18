@@ -1,6 +1,8 @@
 import type {
-  MessageInput,
-  MessageOutput,
+  SendInput,
+  SendOutput,
+  ReplyInput,
+  ReplyOutput,
   STTInput,
   STTOutput,
   TTSInput,
@@ -8,7 +10,9 @@ import type {
 } from '@/shared/schema'
 
 export interface IChat {
-  message: (input: MessageInput) => Promise<MessageOutput>
+  send: (input: SendInput) => Promise<SendOutput>
+
+  reply: (input: ReplyInput) => Promise<ReplyOutput>
 }
 
 export interface ISpeech {

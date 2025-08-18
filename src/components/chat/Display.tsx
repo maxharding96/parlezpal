@@ -9,9 +9,13 @@ export function ChatDisplay() {
   const history = useChatStore((state) => state.history)
 
   const [showMessages, toggleShowMessages] = useState(false)
-
+  const [showActions, setShowActions] = useState(false)
   return (
-    <div className="flex h-full flex-col">
+    <div
+      className="relative flex h-full flex-col"
+      onMouseEnter={() => setShowActions(true)}
+      onMouseLeave={() => setShowActions(false)}
+    >
       <ScrollArea className="flex-1 overflow-hidden px-4">
         <div className="space-y-4">
           {history.length === 0 ? (
@@ -22,23 +26,22 @@ export function ChatDisplay() {
               </p>
             </div>
           ) : (
-            <>
-              <Actions
+            history.map((message, index) => (
+              <ChatMessage
+                key={index}
+                chatId={chatId}
+                message={message}
                 showMessages={showMessages}
-                toggleShowMessages={() => toggleShowMessages((prev) => !prev)}
               />
-              {history.map((message, index) => (
-                <ChatMessage
-                  key={index}
-                  chatId={chatId}
-                  message={message}
-                  showMessages={showMessages}
-                />
-              ))}
-            </>
+            ))
           )}
         </div>
       </ScrollArea>
+      <Actions
+        showActions={showActions}
+        showMessages={showMessages}
+        toggleShowMessages={() => toggleShowMessages((prev) => !prev)}
+      />
     </div>
   )
 }

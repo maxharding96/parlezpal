@@ -49,6 +49,8 @@ function getMessageStyle(message: Message, showMessages: boolean) {
     case 'user':
       return {
         container: 'ml-auto',
+        card: message.sent ? '' : 'bg-red-50',
+        label: message.sent ? '' : 'bg-red-100',
       }
     case 'roleplay':
       return {

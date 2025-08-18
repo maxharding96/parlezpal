@@ -1,15 +1,23 @@
 'use client'
 
 import { Kbd } from '@/components/ui/kbd'
-import { useKeyPress, useRecord, useMessage, useChatStore } from '@/hooks'
+import {
+  useKeyPress,
+  useRecord,
+  useReply,
+  useChatStore,
+  useSend,
+} from '@/hooks'
 import { useAudioStore } from '@/hooks/useAudioStore'
 import { getBlob } from '@/lib/storage'
 import { playBlob } from '@/lib/utils/audio'
 import { toast } from 'sonner'
 
 const Record = () => {
+  const { generate } = useSend()
+
   useRecord({
-    onRecordingComplete: () => toast.success('Recording saved.'),
+    onRecordingComplete: () => void generate(),
   })
 
   return (
@@ -18,14 +26,29 @@ const Record = () => {
 }
 
 const Submit = () => {
-  const { generate } = useMessage()
+  const chatId = useChatStore((state) => state.chatId)
+
+  const { generate } = useReply()
+
+  const handlePress = async () => {
+    const message = await generate()
+
+    if (message) {
+      const blob = await getBlob({
+        chatId,
+        messageId: message.id,
+      })
+
+      void playBlob(blob)
+    }
+  }
 
   return (
     <Instruction
       action="Press"
       keyStr="Enter"
       reaction="to submit your message"
-      onPress={generate}
+      onPress={handlePress}
     />
   )
 }

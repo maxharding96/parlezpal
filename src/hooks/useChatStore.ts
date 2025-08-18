@@ -12,6 +12,7 @@ interface ChatStore {
   history: Message[]
   pushMessage: (message: Message) => void
   getLastMessage: () => Message | null
+  sendMessage: (messageId: string) => void
   resetHistory: () => void
 }
 
@@ -33,6 +34,13 @@ export const useChatStore = create<ChatStore>()(
       getLastMessage: () => {
         const { history } = get()
         return history.length > 0 ? history[history.length - 1]! : null
+      },
+      sendMessage: (messageId) => {
+        const { history } = get()
+        const updatedHistory = history.map((msg) =>
+          msg.id === messageId ? { ...msg, sent: true } : msg
+        )
+        set({ history: updatedHistory })
       },
       resetHistory: () => set({ history: [] }),
     }),
