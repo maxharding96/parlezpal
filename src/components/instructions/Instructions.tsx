@@ -1,15 +1,23 @@
 'use client'
 
 import { Kbd } from '@/components/ui/kbd'
-import { useKeyPress, useRecord, useMessage, useChatStore } from '@/hooks'
-import { useAudioStore } from '@/hooks/useAudioStore'
+import {
+  useKeyPress,
+  useRecord,
+  useReply,
+  useChatStore,
+  useSend,
+} from '@/hooks'
 import { getBlob } from '@/lib/storage'
 import { playBlob } from '@/lib/utils/audio'
 import { toast } from 'sonner'
+import { useShallow } from 'zustand/react/shallow'
 
 const Record = () => {
+  const { generate } = useSend()
+
   useRecord({
-    onRecordingComplete: () => toast.success('Recording saved.'),
+    onRecordingComplete: (blob) => void generate(blob),
   })
 
   return (
@@ -18,59 +26,70 @@ const Record = () => {
 }
 
 const Submit = () => {
-  const { generate } = useMessage()
+  const chatId = useChatStore((state) => state.chatId)
+
+  const { generate } = useReply()
+
+  const handlePress = async () => {
+    const message = await generate()
+
+    if (message) {
+      const blob = await getBlob({
+        chatId,
+        messageId: message.id,
+      })
+
+      void playBlob(blob)
+    }
+  }
 
   return (
     <Instruction
       action="Press"
       keyStr="Enter"
       reaction="to submit your message"
-      onPress={generate}
+      onPress={handlePress}
     />
   )
 }
 
-const Listen = () => {
-  const audioBlob = useAudioStore((state) => state.audioBlob)
+const Playback = () => {
+  const { chatId, tmpMessage, getLastMessage } = useChatStore(
+    useShallow((state) => ({
+      chatId: state.chatId,
+      tmpMessage: state.tmpMessage,
+      getLastMessage: state.getLastMessage,
+    }))
+  )
 
-  const handlePress = () => {
-    if (!audioBlob) {
-      toast.error('No audio recorded yet.')
-      return
+  const handlePress = async () => {
+    const lastMessage = getLastMessage()
+    let blob: Blob | null = null
+
+    if (tmpMessage) {
+      blob = await getBlob({
+        chatId,
+        messageId: tmpMessage.id,
+      })
+    } else if (lastMessage) {
+      blob = await getBlob({
+        chatId,
+        messageId: lastMessage.id,
+      })
     }
 
-    playBlob(audioBlob)
+    if (blob) {
+      playBlob(blob)
+    } else {
+      toast.error('No messages to replay.')
+    }
   }
 
   return (
     <Instruction
       action="Press"
       keyStr="p"
-      reaction="to play back your message"
-      onPress={handlePress}
-    />
-  )
-}
-
-const Replay = () => {
-  const chatId = useChatStore((state) => state.chatId)
-  const lastMessage = useChatStore((state) => state.getLastMessage())
-
-  const handlePress = async () => {
-    if (!lastMessage) {
-      toast.error('No messages to replay.')
-      return
-    }
-
-    const blob = await getBlob({ chatId, messageId: lastMessage.id })
-    playBlob(blob)
-  }
-
-  return (
-    <Instruction
-      action="Press"
-      keyStr="r"
-      reaction="to replay the last message"
+      reaction="to playback the last message"
       onPress={handlePress}
     />
   )
@@ -79,8 +98,7 @@ const Replay = () => {
 export const Instructions = {
   Record,
   Submit,
-  Listen,
-  Replay,
+  Playback,
 }
 
 interface InstructionProps {

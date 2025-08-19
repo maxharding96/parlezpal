@@ -8,12 +8,16 @@ import {
 import { LevelSelect, LanguageSelect } from '@/components/form'
 import { ChatDisplay } from '@/components/chat'
 import { InstructionsDisplay } from '@/components/instructions'
+import { Button } from '@/components/ui/button'
+import { useChatStore } from '@/hooks'
 
 export default function HomePage() {
+  const resetHistory = useChatStore((state) => state.resetHistory)
+
   return (
     <main className="flex h-full flex-col items-center justify-center">
       <div className="z-10 w-full px-8 py-4 shadow">
-        <h1 className="text-left text-4xl font-bold">ParlerPal</h1>
+        <h1 className="text-left text-4xl font-bold">ParlezPal</h1>
       </div>
       <ResizablePanelGroup direction="horizontal">
         <ResizablePanel defaultSize={50}>
@@ -28,6 +32,9 @@ export default function HomePage() {
                 <div className="flex flex-col space-y-8">
                   <LanguageSelect />
                   <LevelSelect />
+                  <Button className="w-min" onClick={resetHistory}>
+                    Reset Chat
+                  </Button>
                 </div>
               </div>
             </ResizablePanel>

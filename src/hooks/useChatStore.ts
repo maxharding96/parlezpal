@@ -1,4 +1,4 @@
-import type { Language, Level, Message } from '@/shared/schema'
+import type { Language, Level, Message, UserMessage } from '@/shared/schema'
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { v4 as uuidv4 } from 'uuid'
@@ -9,6 +9,8 @@ interface ChatStore {
   setLanguage: (language: Language | null) => void
   level: Level | null
   setLevel: (level: Level | null) => void
+  tmpMessage: UserMessage | null
+  setTmpMessage: (message: UserMessage | null) => void
   history: Message[]
   pushMessage: (message: Message) => void
   getLastMessage: () => Message | null
@@ -19,22 +21,23 @@ export const useChatStore = create<ChatStore>()(
   persist(
     (set, get) => ({
       chatId: uuidv4(),
-      scenario: null,
       language: null,
       setLanguage: (language) => set({ language }),
       level: null,
       setLevel: (level) => set({ level }),
+      tmpMessage: null,
+      setTmpMessage: (message) => set({ tmpMessage: message }),
       history: [],
-      pushMessage: (history) => {
+      pushMessage: (message) => {
         set((state) => ({
-          history: [...state.history, history],
+          history: [...state.history, message],
         }))
       },
       getLastMessage: () => {
         const { history } = get()
         return history.length > 0 ? history[history.length - 1]! : null
       },
-      resetHistory: () => set({ history: [] }),
+      resetHistory: () => set({ history: [], tmpMessage: null }),
     }),
     {
       name: 'chat-history',
