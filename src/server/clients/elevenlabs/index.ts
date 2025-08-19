@@ -1,12 +1,6 @@
 import { getUrl, putBlob } from '@/lib/storage'
 import type { ISpeech } from '@/server/clients/schema'
-import {
-  languageToCode,
-  type STTInput,
-  type STTOutput,
-  type TTSInput,
-  type TTSOutput,
-} from '@/shared/schema'
+import { type STTInput, type STTOutput, type TTSInput } from '@/shared/schema'
 import { ElevenLabsClient as ElevenLabs } from '@elevenlabs/elevenlabs-js'
 import { v4 as uuidv4 } from 'uuid'
 
@@ -20,7 +14,7 @@ export class ElevenLabsClient implements ISpeech {
   }
 
   async stt(input: STTInput): Promise<STTOutput> {
-    const { chatId, messageId, language } = input
+    const { chatId, messageId } = input
 
     const url = getUrl({ chatId, messageId })
 
@@ -36,7 +30,6 @@ export class ElevenLabsClient implements ISpeech {
       modelId: 'scribe_v1',
       file,
       numSpeakers: 1,
-      // languageCode: languageToCode[language],
     })
 
     if ('text' in transcript) {
@@ -46,22 +39,19 @@ export class ElevenLabsClient implements ISpeech {
     throw new Error(`Failed to transcribe audio.`)
   }
 
-  async tts(input: TTSInput): Promise<TTSOutput> {
-    const { chatId, message, prevMessage, language } = input
+  async tts(input: TTSInput): Promise<void> {
+    const { chatId, message, prevMessage } = input
 
     const messageId = uuidv4()
 
     const response = await this.client.textToSpeech.convert(VOICE_ID, {
       text: message,
       previousText: prevMessage,
-      // languageCode: languageToCode[language],
     })
 
     await putBlob(response, {
       chatId,
       messageId,
     })
-
-    return { messageId }
   }
 }

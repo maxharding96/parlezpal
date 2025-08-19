@@ -1,13 +1,7 @@
 import { getUrl } from '@/lib/storage'
 import type { ISpeech } from '@/server/clients/schema'
-import {
-  languageToCode,
-  type STTInput,
-  type STTOutput,
-  type TTSOutput,
-} from '@/shared/schema'
+import { type STTInput, type STTOutput } from '@/shared/schema'
 import { AssemblyAI } from 'assemblyai'
-import { buildStudentPrompt } from '../openai/instructions'
 
 export class AssemblyClient implements ISpeech {
   private client: AssemblyAI
@@ -17,7 +11,7 @@ export class AssemblyClient implements ISpeech {
   }
 
   async stt(input: STTInput): Promise<STTOutput> {
-    const { chatId, messageId, language } = input
+    const { chatId, messageId } = input
 
     const url = getUrl({ chatId, messageId })
 
@@ -43,7 +37,7 @@ export class AssemblyClient implements ISpeech {
     }
   }
 
-  async tts(): Promise<TTSOutput> {
+  async tts(): Promise<void> {
     throw new Error('Not implemented')
   }
 }

@@ -6,7 +6,6 @@ import type {
   STTInput,
   STTOutput,
   TTSInput,
-  TTSOutput,
 } from '@/shared/schema'
 
 export interface IChat {
@@ -18,5 +17,5 @@ export interface IChat {
 export interface ISpeech {
   stt: (input: STTInput) => Promise<STTOutput>
 
-  tts: (input: TTSInput) => Promise<TTSOutput>
+  tts: (input: TTSInput) => Promise<void>
 }
