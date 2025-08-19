@@ -52,7 +52,6 @@ export class OpenAIClient implements IChat, ISpeech {
       type: 'user',
       id: messageId,
       content: transcript.text,
-      sent: false,
     }
 
     return {

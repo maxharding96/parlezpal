@@ -9,27 +9,23 @@ import { uploadBlob } from '@/lib/storage'
 import { toast } from 'sonner'
 
 export function useSend() {
-  const { chatId, language, level, pushMessage, getLastMessage } = useChatStore(
-    useShallow((state) => ({
-      chatId: state.chatId,
-      language: state.language,
-      level: state.level,
-      pushMessage: state.pushMessage,
-      getLastMessage: state.getLastMessage,
-    }))
-  )
+  const { chatId, language, level, setTmpMessage, getLastMessage } =
+    useChatStore(
+      useShallow((state) => ({
+        chatId: state.chatId,
+        language: state.language,
+        level: state.level,
+        setTmpMessage: state.setTmpMessage,
+        getLastMessage: state.getLastMessage,
+      }))
+    )
 
-  const { audioBlob, setAudioBlob } = useAudioStore(
-    useShallow((state) => ({
-      audioBlob: state.audioBlob,
-      setAudioBlob: state.setAudioBlob,
-    }))
-  )
+  const setAudioBlob = useAudioStore((state) => state.setAudioBlob)
 
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [error, setError] = useState<string | null>(null)
 
-  const generate = async () => {
+  const generate = async (blob: Blob) => {
     // Prevent concurrent requests
     if (isLoading) return
 
@@ -46,11 +42,6 @@ export function useSend() {
 
     const lastMessage = getLastMessage()
 
-    if (!audioBlob) {
-      toast.error('Please record a message first.')
-      return
-    }
-
     setIsLoading(true)
     setError(null)
 
@@ -58,7 +49,7 @@ export function useSend() {
       const messageId = uuidv4()
 
       // Upload audio blob
-      await uploadBlob(audioBlob, {
+      await uploadBlob(blob, {
         chatId,
         messageId,
       })
@@ -84,7 +75,7 @@ export function useSend() {
       const { message } = SendOutput.parse(data)
 
       // Add user message to chat history
-      pushMessage(message)
+      setTmpMessage(message)
       // Reset audio state
       setAudioBlob(null)
 

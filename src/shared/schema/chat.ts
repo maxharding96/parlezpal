@@ -5,7 +5,6 @@ export const UserMessage = z.object({
   type: z.literal('user'),
   id: z.string(),
   content: z.string(),
-  sent: z.boolean(),
 })
 
 export type UserMessage = z.infer<typeof UserMessage>

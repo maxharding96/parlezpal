@@ -41,9 +41,9 @@ export const buildGenerateMessageInstructions = ({
   - Use message type: **"scenario"**
   - Always write the scenario in English
   - Make sure the scenario is suitable for the student's level (${level})
-  - Make it clear the roles you will play & the student will play
-  - Keep the scenario concise & open-ended to allow for natural conversation
-  - **Never** tell the student what to say or do
+  - Keep the scenario description short & concise
+  - Make it clear the roles you & the student will play
+  - NEVER tell the student what to say or do as part of the scenario unless instructed by them
 
   2. Roleplay
 
@@ -63,7 +63,9 @@ export const buildGenerateMessageInstructions = ({
   ### When
   - The student is responding to the scenario you have outlined
   - They are responding in **${language}**
-  - Their response contains a grammatical error or does not make sense in the context of the scenario
+  - There response is NOT correct **${language}**. 
+  - A correct response must be BOTH grammatically correct and sound natural in ${language}
+  - NEVER give feedback for anything other than this
 
   ### Format
   - Use message type: **"feedback"**
@@ -84,6 +86,7 @@ export const buildGenerateMessageInstructions = ({
   ### Format
   - Use message type: **"qa"**
   - Provide a clear, concise answer
+  - Make sure all ${language} language questions are answered with grammatically correct & natural-sounding **${language}**
 `
 
 export const buildTutorPrompt = ({
@@ -92,19 +95,12 @@ export const buildTutorPrompt = ({
 }: {
   language: Language
   prevMessage: string | undefined
-}) => {
-  let prompt = [
-    `This is a recording of a ${language} language tutor speaking to their student.`,
-    `The tutor is helping the student practice their speaking skills in ${language} by roleplaying with them.`,
-    `They may also be responding to questions from student or giving feedback which will be in English.`,
-  ].join(' ')
+}) =>
+  dedent`
+  This is a recording of a ${language} language tutor talking to their student. The tutor will be speaking in BOTH ${language} and English.
 
-  if (prevMessage) {
-    prompt += `\n\nThe tutor is responding to their student who just said: "${prevMessage}"`
-  }
-
-  return prompt
-}
+  ${prevMessage ? `The tutor is responding to their student who just said: "${prevMessage}"` : ''}
+`.trim()
 
 export const buildStudentPrompt = ({
   language,
@@ -112,16 +108,9 @@ export const buildStudentPrompt = ({
 }: {
   language: Language
   prevMessage: string | undefined
-}) => {
-  let prompt = [
-    `This is a recording of a student speaking to their ${language} language tutor.`,
-    `The student will be practicing their speaking skills in ${language} by roleplaying with their tutor.`,
-    `They may also be asking questions about ${language} or the roleplay scenario which will be in English.`,
-  ].join(' ')
+}) =>
+  dedent`
+  This is a recording of a student talking to their ${language} language tutor. The student will be speaking in BOTH ${language} and English.
 
-  if (prevMessage) {
-    prompt += `\n\nThe student is responding to their tutor who just said: "${prevMessage}"`
-  }
-
-  return prompt
-}
+  ${prevMessage ? `The student is responding to their tutor who just said: "${prevMessage}"` : ''}
+`.trim()

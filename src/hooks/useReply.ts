@@ -11,19 +11,19 @@ export function useReply() {
     chatId,
     language,
     level,
+    tmpMessage,
+    setTmpMessage,
     history,
     pushMessage,
-    getLastMessage,
-    sendMessage,
   } = useChatStore(
     useShallow((state) => ({
       chatId: state.chatId,
       language: state.language,
       level: state.level,
+      tmpMessage: state.tmpMessage,
+      setTmpMessage: state.setTmpMessage,
       history: state.history,
       pushMessage: state.pushMessage,
-      getLastMessage: state.getLastMessage,
-      sendMessage: state.sendMessage,
     }))
   )
 
@@ -45,18 +45,20 @@ export function useReply() {
       return
     }
 
-    const lastMessage = getLastMessage()
-    if (!lastMessage) {
-      toast.error('No previous message found.')
-      return
-    }
-
     setIsLoading(true)
     setError(null)
 
     try {
-      // Mark last message as sent
-      sendMessage(lastMessage.id)
+      const localHistory = [...history]
+
+      if (!tmpMessage) {
+        return
+      }
+
+      // Move temporary message to history
+      setTmpMessage(null)
+      pushMessage(tmpMessage)
+      localHistory.push(tmpMessage)
 
       const messageId = uuidv4()
 
@@ -65,7 +67,7 @@ export function useReply() {
         messageId,
         language,
         level,
-        history,
+        history: localHistory,
       }
 
       const response = await fetch('/api/chat/reply', {
