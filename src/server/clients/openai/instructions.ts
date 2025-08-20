@@ -65,7 +65,7 @@ export const buildGenerateMessageInstructions = ({
   - They are responding in **${language}**
   - There response is NOT correct **${language}**. 
   - A correct response must be BOTH grammatically correct and sound natural in ${language}
-  - NEVER give feedback for anything other than this
+  - Do NOT give feedback about punctuation or spelling mistakes
 
   ### Format
   - Use message type: **"feedback"**
@@ -86,7 +86,6 @@ export const buildGenerateMessageInstructions = ({
   ### Format
   - Use message type: **"qa"**
   - Provide a clear, concise answer
-  - Make sure all ${language} language questions are answered with grammatically correct & natural-sounding **${language}**
 `
 
 export const buildTutorPrompt = ({
