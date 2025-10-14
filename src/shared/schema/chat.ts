@@ -77,8 +77,15 @@ export const ReplyInput = z.object({
 
 export type ReplyInput = z.infer<typeof ReplyInput>
 
+export const messageTypeEnum = z.enum([
+  'roleplay',
+  'feedback',
+  'qa',
+  'scenario',
+])
+
 export const MessageEvent = z.object({
-  type: z.enum(['roleplay', 'feedback', 'qa', 'scenario']),
+  type: messageTypeEnum,
   content: z.string(),
 })
 

@@ -64,7 +64,7 @@ export function useReply() {
 
       const input: ReplyInput = {
         chatId,
-        messageId,
+        messageId: tmpMessage.id,
         language,
         level,
         history: localHistory,

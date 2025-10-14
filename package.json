@@ -22,7 +22,7 @@
   },
   "dependencies": {
     "@elevenlabs/elevenlabs-js": "^2.9.0",
-    "@google/genai": "^1.10.0",
+    "@google/genai": "^1.24.0",
     "@prisma/client": "^6.5.0",
     "@radix-ui/react-label": "^2.1.7",
     "@radix-ui/react-scroll-area": "^1.2.9",
