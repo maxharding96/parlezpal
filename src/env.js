@@ -8,8 +8,6 @@ export const env = createEnv({
    */
   server: {
     OPENAI_API_KEY: z.string(),
-    ELEVENLABS_API_KEY: z.string(),
-    ASSEMBLY_API_KEY: z.string(),
     GEMINI_API_KEY: z.string(),
     NODE_ENV: z
       .enum(["development", "test", "production"])
@@ -31,8 +29,6 @@ export const env = createEnv({
    */
   runtimeEnv: {
     OPENAI_API_KEY: process.env.OPENAI_API_KEY,
-    ELEVENLABS_API_KEY: process.env.ELEVENLABS_API_KEY,
-    ASSEMBLY_API_KEY: process.env.ASSEMBLY_API_KEY,
     GEMINI_API_KEY: process.env.GEMINI_API_KEY,
     NODE_ENV: process.env.NODE_ENV,
     // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
