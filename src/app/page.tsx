@@ -5,7 +5,11 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from '@/components/ui/resizable'
-import { LevelSelect, LanguageSelect } from '@/components/form'
+import {
+  LevelSelect,
+  LanguageSelect,
+  ChatProviderSelect,
+} from '@/components/form'
 import { ChatDisplay } from '@/components/chat'
 import { InstructionsDisplay } from '@/components/instructions'
 import { Button } from '@/components/ui/button'
@@ -32,6 +36,7 @@ export default function HomePage() {
                 <div className="flex flex-col space-y-8">
                   <LanguageSelect />
                   <LevelSelect />
+                  <ChatProviderSelect />
                   <Button className="w-min" onClick={resetHistory}>
                     Reset Chat
                   </Button>

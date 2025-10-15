@@ -113,17 +113,15 @@ const conversationControl = z.object({
   }),
 })
 
-export const messageEvent = z.discriminatedUnion('type', [
+export const replyMessage = z.discriminatedUnion('type', [
   scenarioProposal,
   roleplayResponse,
   questionAnswer,
   conversationControl,
 ])
 
-export type MessageEvent = z.infer<typeof messageEvent>
-
-export const ReplyOutput = z.object({
-  message: messageEvent,
+export const replyOutputSchema = z.object({
+  message: replyMessage,
 })
 
-export type ReplyOutput = z.infer<typeof ReplyOutput>
+export type ReplyOutput = z.infer<typeof replyOutputSchema>

@@ -9,7 +9,7 @@ import type {
   STTOutput,
   ReplyInput,
 } from '@/shared/schema'
-import { messageEvent } from '@/shared/schema'
+import { replyOutputSchema } from '@/shared/schema'
 import type { ResponseInput } from 'openai/resources/responses/responses'
 import { buildGenerateMessageInstructions } from './instructions'
 
@@ -38,19 +38,17 @@ export class OpenAIClient implements IChat, ISpeech {
       }),
       input: this.formatHistory(history),
       text: {
-        format: zodTextFormat(messageEvent, 'event'),
+        format: zodTextFormat(replyOutputSchema, 'event'),
       },
     })
 
-    const message = response.output_parsed
+    const reply = response.output_parsed
 
-    if (!message) {
+    if (!reply) {
       throw new Error('No message returned from OpenAI')
     }
 
-    return {
-      message,
-    }
+    return reply
   }
 
   async stt(input: STTInput): Promise<STTOutput> {

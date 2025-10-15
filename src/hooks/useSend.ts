@@ -8,15 +8,17 @@ import { uploadBlob } from '@/lib/storage'
 import { toast } from 'sonner'
 
 export function useSend() {
-  const { chatId, language, level, history, pushMessage } = useChatStore(
-    useShallow((state) => ({
-      chatId: state.chatId,
-      language: state.language,
-      level: state.level,
-      history: state.history,
-      pushMessage: state.pushMessage,
-    }))
-  )
+  const { chatId, language, level, provider, history, pushMessage } =
+    useChatStore(
+      useShallow((state) => ({
+        chatId: state.chatId,
+        language: state.language,
+        level: state.level,
+        provider: state.provider,
+        history: state.history,
+        pushMessage: state.pushMessage,
+      }))
+    )
 
   const setAudioBlob = useAudioStore((state) => state.setAudioBlob)
 
@@ -55,6 +57,7 @@ export function useSend() {
         messageId,
         language,
         level,
+        provider,
         history,
       }
 

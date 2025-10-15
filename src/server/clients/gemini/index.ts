@@ -1,6 +1,6 @@
 import { GoogleGenAI, type Content } from '@google/genai'
 import type { ReplyOutput, Message, ReplyInput } from '@/shared/schema'
-import { messageEvent } from '@/shared/schema'
+import { replyMessage } from '@/shared/schema'
 import {
   buildReplySystemInstuctions,
   buildStudentAudioDescription,
@@ -53,7 +53,7 @@ export class GeminiClient implements IChat {
     }
 
     const unsafeReply = JSON.parse(response.text)
-    const reply = messageEvent.parse(unsafeReply)
+    const reply = replyMessage.parse(unsafeReply)
 
     return {
       message: reply,
