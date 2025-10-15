@@ -2,6 +2,7 @@ import type { Message } from '@/shared/schema'
 import { cn } from '@/lib/utils/styles'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { Skeleton } from '@/components/ui/skeleton'
 import {
   Tooltip,
   TooltipContent,
@@ -158,6 +159,29 @@ export function ChatMessage(props: ChatMessageProps) {
         </Card>
       </div>
       <audio ref={audioRef} src={url} />
+    </>
+  )
+}
+
+interface ChatMessageLoaderProps {
+  user: boolean
+}
+
+export function ChatMessageLoader(props: ChatMessageLoaderProps) {
+  const { user } = props
+
+  return (
+    <>
+      <div
+        className={cn(
+          'z-0 flex max-w-[80%] pt-4 first:mt-4 last:mb-4',
+          user ? 'ml-auto' : 'mr-auto'
+        )}
+      >
+        <Card className="h-28 w-full p-0">
+          <Skeleton className="h-full w-full" />
+        </Card>
+      </div>
     </>
   )
 }

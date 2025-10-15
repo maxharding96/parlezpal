@@ -3,6 +3,8 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { v4 as uuidv4 } from 'uuid'
 
+type ProgressState = 'idle' | 'transcribing' | 'responding'
+
 interface ChatStore {
   chatId: string
   language: Language | null
@@ -15,6 +17,11 @@ interface ChatStore {
   pushMessage: (message: Message) => void
   getLastMessage: () => Message | null
   resetHistory: () => void
+  state: ProgressState
+  setState: (state: ProgressState) => void
+  error: string | null
+  setError: (error: string | null) => void
+  isInProgress: () => boolean
 }
 
 export const useChatStore = create<ChatStore>()(
@@ -38,6 +45,14 @@ export const useChatStore = create<ChatStore>()(
         return history.length > 0 ? history[history.length - 1]! : null
       },
       resetHistory: () => set({ history: [] }),
+      state: 'idle',
+      setState: (state) => set({ state }),
+      error: null,
+      setError: (error) => set({ error }),
+      isInProgress: () => {
+        const { state } = get()
+        return state !== 'idle'
+      },
     }),
     {
       name: 'chat-history',
