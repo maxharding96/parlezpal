@@ -60,7 +60,6 @@ function formatMessagePrefix({
 export async function getBlob(params: GetBlobParams): Promise<Blob> {
   const response = await fetch('/api/blob/get', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(params),
   })
 
