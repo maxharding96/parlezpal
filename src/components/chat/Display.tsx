@@ -7,10 +7,9 @@ import { useEffect, useRef } from 'react'
 export function ChatDisplay() {
   const scrollAreaRef = useRef<HTMLDivElement>(null)
 
-  const { chatId, tmpMessage, history } = useChatStore(
+  const { chatId, history } = useChatStore(
     useShallow((state) => ({
       chatId: state.chatId,
-      tmpMessage: state.tmpMessage,
       history: state.history,
     }))
   )
@@ -24,9 +23,9 @@ export function ChatDisplay() {
         scrollContainer.scrollTop = scrollContainer.scrollHeight
       }
     }
-  }, [history, tmpMessage])
+  }, [history])
 
-  const empty = !tmpMessage && history.length === 0
+  const empty = history.length === 0
 
   return (
     <div className="relative flex h-full flex-col">
@@ -44,9 +43,6 @@ export function ChatDisplay() {
               {history.map((message, index) => (
                 <ChatMessage key={index} chatId={chatId} message={message} />
               ))}
-              {tmpMessage && (
-                <ChatMessage chatId={chatId} message={tmpMessage} tmp />
-              )}
             </>
           )}
         </div>

@@ -12,7 +12,6 @@ import {
   MessageCircle,
   Play,
   MessageCircleQuestionMark,
-  MessageCircleWarning,
   Eye,
   MessageSquareOff,
   MessageSquare,
@@ -25,13 +24,11 @@ function getMessageLabel(message: Message) {
   switch (message.type) {
     case 'user':
       return 'You'
-    case 'roleplay':
+    case 'roleplay_response':
       return 'Roleplay'
-    case 'feedback':
-      return 'Feedback'
-    case 'qa':
+    case 'question_answer':
       return 'QA'
-    case 'scenario':
+    case 'scenario_proposal':
       return 'Scenario'
   }
 }
@@ -40,45 +37,35 @@ function getMessageIcon(message: Message) {
   switch (message.type) {
     case 'user':
       return <User className="h-4 w-4" />
-    case 'roleplay':
+    case 'roleplay_response':
       return <MessageCircle className="h-4 w-4" />
-    case 'feedback':
-      return <MessageCircleWarning className="h-4 w-4" />
-    case 'qa':
+    case 'question_answer':
       return <MessageCircleQuestionMark className="h-4 w-4" />
-    case 'scenario':
+    case 'scenario_proposal':
       return <Eye className="h-4 w-4" />
   }
 }
 
-function getMessageStyle(message: Message, hide: boolean, tmp?: boolean) {
+function getMessageStyle(message: Message, hide: boolean) {
   switch (message.type) {
     case 'user':
       return {
         container: 'ml-auto',
-        card: tmp ? 'bg-yellow-50' : '',
-        label: tmp ? 'bg-yellow-100' : '',
       }
-    case 'roleplay':
+    case 'roleplay_response':
       return {
         container: 'mr-auto',
         card: 'bg-stone-50',
         label: 'bg-stone-100',
         text: hide ? 'bg-stone-100 text-stone-100 select-none' : '',
       }
-    case 'feedback':
-      return {
-        container: 'mr-auto',
-        card: 'bg-lime-50',
-        label: 'bg-lime-100',
-      }
-    case 'qa':
+    case 'question_answer':
       return {
         container: 'mr-auto',
         card: 'bg-emerald-50',
         label: 'bg-emerald-100',
       }
-    case 'scenario':
+    case 'scenario_proposal':
       return {
         container: 'mr-auto',
         card: 'bg-green-50',
@@ -90,13 +77,12 @@ function getMessageStyle(message: Message, hide: boolean, tmp?: boolean) {
 interface ChatMessageProps {
   chatId: string
   message: Message
-  tmp?: boolean
 }
 
 export function ChatMessage(props: ChatMessageProps) {
-  const { chatId, message, tmp } = props
+  const { chatId, message } = props
 
-  const [hide, setHide] = useState(message.type === 'roleplay')
+  const [hide, setHide] = useState(message.type === 'roleplay_response')
 
   const url = getUrl({
     chatId,
@@ -113,7 +99,7 @@ export function ChatMessage(props: ChatMessageProps) {
     }
   }
 
-  const styles = getMessageStyle(message, hide, tmp)
+  const styles = getMessageStyle(message, hide)
 
   return (
     <>
@@ -133,7 +119,7 @@ export function ChatMessage(props: ChatMessageProps) {
                 </Badge>
               </div>
               <div className="flex gap-2">
-                {message.type === 'roleplay' && (
+                {message.type === 'roleplay_response' && (
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button

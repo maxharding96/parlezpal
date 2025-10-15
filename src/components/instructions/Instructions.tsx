@@ -1,23 +1,25 @@
 'use client'
 
 import { Kbd } from '@/components/ui/kbd'
-import {
-  useKeyPress,
-  useRecord,
-  useReply,
-  useChatStore,
-  useSend,
-} from '@/hooks'
+import { useKeyPress, useRecord, useChatStore, useSend } from '@/hooks'
 import { getBlob } from '@/lib/storage'
 import { playBlob } from '@/lib/utils/audio'
 import { toast } from 'sonner'
 import { useShallow } from 'zustand/react/shallow'
 
 const Record = () => {
+  const chatId = useChatStore((state) => state.chatId)
   const { generate } = useSend()
 
   useRecord({
-    onRecordingComplete: (blob) => void generate(blob),
+    onRecordingComplete: async (blob) => {
+      const message = await generate(blob)
+
+      if (message) {
+        const blob = await getBlob({ chatId, messageId: message.id })
+        void playBlob(blob)
+      }
+    },
   })
 
   return (
@@ -25,39 +27,10 @@ const Record = () => {
   )
 }
 
-const Submit = () => {
-  const chatId = useChatStore((state) => state.chatId)
-
-  const { generate } = useReply()
-
-  const handlePress = async () => {
-    const message = await generate()
-
-    if (message) {
-      const blob = await getBlob({
-        chatId,
-        messageId: message.id,
-      })
-
-      void playBlob(blob)
-    }
-  }
-
-  return (
-    <Instruction
-      action="Press"
-      keyStr="Enter"
-      reaction="to submit your message"
-      onPress={handlePress}
-    />
-  )
-}
-
 const Playback = () => {
-  const { chatId, tmpMessage, getLastMessage } = useChatStore(
+  const { chatId, getLastMessage } = useChatStore(
     useShallow((state) => ({
       chatId: state.chatId,
-      tmpMessage: state.tmpMessage,
       getLastMessage: state.getLastMessage,
     }))
   )
@@ -66,12 +39,7 @@ const Playback = () => {
     const lastMessage = getLastMessage()
     let blob: Blob | null = null
 
-    if (tmpMessage) {
-      blob = await getBlob({
-        chatId,
-        messageId: tmpMessage.id,
-      })
-    } else if (lastMessage) {
+    if (lastMessage) {
       blob = await getBlob({
         chatId,
         messageId: lastMessage.id,
@@ -97,7 +65,6 @@ const Playback = () => {
 
 export const Instructions = {
   Record,
-  Submit,
   Playback,
 }
 
