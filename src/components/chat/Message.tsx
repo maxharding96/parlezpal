@@ -30,8 +30,6 @@ function getMessageLabel(message: Message) {
       return 'QA'
     case 'scenario_proposal':
       return 'Scenario'
-    case 'conversation_control':
-      return 'Tutor'
   }
 }
 
@@ -53,10 +51,6 @@ function getMessageStyle(message: Message, hide: boolean) {
     case 'user':
       return {
         container: 'ml-auto',
-      }
-    case 'conversation_control':
-      return {
-        container: 'ml-right',
       }
     case 'roleplay_response':
       return {

@@ -4,8 +4,6 @@ import { GetBlobParams } from '@/shared/schema/storage'
 export async function POST(request: Request) {
   const res = await request.json()
 
-  console.log(res)
-
   const params = GetBlobParams.parse(res)
   const url = getUrl(params)
 

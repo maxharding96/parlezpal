@@ -93,20 +93,4 @@ export const buildReplySystemInstuctions = ({
     }
   }
   \`\`\`
-
-  ### 4. Type: "conversation_control"
-
-  #### When to Use:
-  - The student expresses a desire to end the scenario or switch topics.
-  - The student's message is off-topic or in English without being a direct question.
-
-  #### JSON Structure:
-  \`\`\`json
-  {
-    "type": "conversation_control",
-    "payload": {
-      "message": "<A friendly message in English acknowledging their request and asking what they'd like to do next. e.g., 'No problem! That was a great practice session. Would you like to start a new scenario or end for today?'>"
-    }
-  }
-  \`\`\`
 `

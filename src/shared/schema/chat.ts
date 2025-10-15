@@ -17,7 +17,6 @@ const assistantMessageType = z.enum([
   'scenario_proposal',
   'roleplay_response',
   'question_answer',
-  'conversation_control',
 ])
 
 export const AssitantMessage = z.object({
@@ -106,18 +105,10 @@ const questionAnswer = z.object({
   }),
 })
 
-const conversationControl = z.object({
-  type: z.literal('conversation_control'),
-  payload: z.object({
-    message: z.string(),
-  }),
-})
-
 export const replyMessage = z.discriminatedUnion('type', [
   scenarioProposal,
   roleplayResponse,
   questionAnswer,
-  conversationControl,
 ])
 
 export const replyOutputSchema = z.object({
