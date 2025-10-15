@@ -1,6 +1,10 @@
 import { z } from 'zod'
 import { Language, Level } from './language'
 
+export const chatProviderEnum = z.enum(['openai', 'gemini'])
+
+export type ChatProvider = z.infer<typeof chatProviderEnum>
+
 export const UserMessage = z.object({
   type: z.literal('user'),
   id: z.string(),
@@ -9,87 +13,106 @@ export const UserMessage = z.object({
 
 export type UserMessage = z.infer<typeof UserMessage>
 
-export const RoleplayMessage = z.object({
-  type: z.literal('roleplay'),
-  id: z.string(),
-  content: z.string(),
-})
-
-export const FeedbackMessage = z.object({
-  type: z.literal('feedback'),
-  id: z.string(),
-  content: z.string(),
-})
-
-export const QAMessage = z.object({
-  type: z.literal('qa'),
-  id: z.string(),
-  content: z.string(),
-})
-
-export const ScenarioMessage = z.object({
-  type: z.literal('scenario'),
-  id: z.string(),
-  content: z.string(),
-})
-
-export const AssitantMessage = z.discriminatedUnion('type', [
-  RoleplayMessage,
-  FeedbackMessage,
-  QAMessage,
-  ScenarioMessage,
+const assistantMessageType = z.enum([
+  'scenario_proposal',
+  'roleplay_response',
+  'question_answer',
 ])
+
+export const AssitantMessage = z.object({
+  type: assistantMessageType,
+  id: z.string(),
+  content: z.string(),
+})
 
 export type AssitantMessage = z.infer<typeof AssitantMessage>
 
 export const Message = z.discriminatedUnion('type', [
   UserMessage,
-  RoleplayMessage,
-  FeedbackMessage,
-  QAMessage,
-  ScenarioMessage,
+  AssitantMessage,
 ])
 
 export type Message = z.infer<typeof Message>
 
 export const SendInput = z.object({
-  chatId: z.string(),
+  provider: chatProviderEnum,
   messageId: z.string(),
-  prevMessage: z.string().optional(),
-  language: Language,
-})
-
-export type SendInput = z.infer<typeof SendInput>
-
-export const SendOutput = z.object({
-  message: UserMessage,
-})
-
-export type SendOutput = z.infer<typeof SendOutput>
-
-export const ReplyInput = z.object({
   chatId: z.string(),
-  messageId: z.string(),
   language: Language,
   level: Level,
   history: z.array(Message),
 })
 
-export type ReplyInput = z.infer<typeof ReplyInput>
+export type SendInput = z.infer<typeof SendInput>
 
-export const MessageEvent = z.object({
-  type: z.enum(['roleplay', 'feedback', 'qa', 'scenario']),
-  content: z.string(),
+export const apiErrorSchema = z.object({
+  type: z.literal('error'),
+  message: z.string(),
 })
 
-export type MessageEvent = z.infer<typeof MessageEvent>
+export type ApiError = z.infer<typeof apiErrorSchema>
 
-export const ReplyOutput = z.object({
-  message: AssitantMessage,
+const baseReplyInputSchema = z.object({
+  language: Language,
+  level: Level,
+  history: z.array(Message),
 })
 
-export type ReplyOutput = z.infer<typeof ReplyOutput>
+export const geminiReplyInputSchema = baseReplyInputSchema.extend({
+  type: z.literal(chatProviderEnum.Values.gemini),
+  message: z.instanceof(Blob),
+})
 
-export const ChatClient = z.enum(['openai'])
+export type GeminiReplyInput = z.infer<typeof geminiReplyInputSchema>
 
-export type ChatClient = z.infer<typeof ChatClient>
+export const openaiReplyInputSchema = baseReplyInputSchema.extend({
+  type: z.literal(chatProviderEnum.Values.openai),
+  message: z.string(),
+})
+
+export type OpenAIReplyInput = z.infer<typeof openaiReplyInputSchema>
+
+export const replyInputSchema = z.discriminatedUnion('type', [
+  geminiReplyInputSchema,
+  openaiReplyInputSchema,
+])
+
+export type ReplyInput = z.infer<typeof replyInputSchema>
+
+const scenarioProposal = z.object({
+  type: z.literal('scenario_proposal'),
+  payload: z.object({
+    description: z.string(),
+    student_role: z.string(),
+    your_role: z.string(),
+    message: z.string(),
+  }),
+})
+
+const roleplayResponse = z.object({
+  type: z.literal('roleplay_response'),
+  payload: z.object({
+    feedback: z.string(),
+    message: z.string(),
+  }),
+})
+
+const questionAnswer = z.object({
+  type: z.literal('question_answer'),
+  payload: z.object({
+    question: z.string(),
+    message: z.string(),
+  }),
+})
+
+export const replyMessage = z.discriminatedUnion('type', [
+  scenarioProposal,
+  roleplayResponse,
+  questionAnswer,
+])
+
+export const replyOutputSchema = z.object({
+  message: replyMessage,
+})
+
+export type ReplyOutput = z.infer<typeof replyOutputSchema>

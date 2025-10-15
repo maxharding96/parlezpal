@@ -3,7 +3,7 @@ import { useAudioStore } from './useAudioStore'
 import { useShallow } from 'zustand/react/shallow'
 
 interface UseSpacebarRecordingOptions {
-  onRecordingComplete?: (audioBlob: Blob) => void
+  onRecordingComplete?: (audioBlob: Blob) => Promise<void>
   onRecordingStart?: () => void
   onRecordingStop?: () => void
   onError?: (error: string) => void
@@ -62,7 +62,7 @@ export const useRecord = (options: UseSpacebarRecordingOptions = {}) => {
       mediaRecorder.onstop = () => {
         const blob = new Blob(chunksRef.current, { type: 'audio/webm' })
         setAudioBlob(blob)
-        onRecordingComplete?.(blob)
+        void onRecordingComplete?.(blob)
 
         // Clean up stream
         if (streamRef.current) {
