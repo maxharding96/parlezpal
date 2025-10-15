@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { useShallow } from 'zustand/react/shallow'
 import { useChatStore } from './useChatStore'
 import { apiErrorSchema, Message, type SendInput } from '@/shared/schema'
@@ -8,26 +7,35 @@ import { uploadBlob } from '@/lib/storage'
 import { toast } from 'sonner'
 
 export function useSend() {
-  const { chatId, language, level, provider, history, pushMessage } =
-    useChatStore(
-      useShallow((state) => ({
-        chatId: state.chatId,
-        language: state.language,
-        level: state.level,
-        provider: state.provider,
-        history: state.history,
-        pushMessage: state.pushMessage,
-      }))
-    )
+  const {
+    chatId,
+    language,
+    level,
+    provider,
+    history,
+    pushMessage,
+    isInProgress,
+    setState,
+    setError,
+  } = useChatStore(
+    useShallow((state) => ({
+      chatId: state.chatId,
+      language: state.language,
+      level: state.level,
+      provider: state.provider,
+      history: state.history,
+      pushMessage: state.pushMessage,
+      isInProgress: state.isInProgress,
+      setState: state.setState,
+      setError: state.setError,
+    }))
+  )
 
   const setAudioBlob = useAudioStore((state) => state.setAudioBlob)
 
-  const [isLoading, setIsLoading] = useState<boolean>(false)
-  const [error, setError] = useState<string | null>(null)
-
   const generate = async (blob: Blob) => {
     // Prevent concurrent requests
-    if (isLoading) return
+    if (isInProgress()) return
 
     // State validation
     if (!language) {
@@ -40,7 +48,7 @@ export function useSend() {
       return
     }
 
-    setIsLoading(true)
+    setState('transcribing')
     setError(null)
 
     try {
@@ -60,8 +68,6 @@ export function useSend() {
         provider,
         history,
       }
-
-      console.log(input)
 
       const response = await fetch('/api/chat/send', {
         method: 'POST',
@@ -94,14 +100,15 @@ export function useSend() {
             if (message.success) {
               pushMessage(message.data)
 
-              if (message.data.type !== 'user') {
+              if (message.data.type === 'user') {
+                setState('responding')
+              } else {
+                setState('idle')
                 return message.data
               }
             } else {
               const error = apiErrorSchema.parse(data)
-
-              toast.error(error.message)
-              setError(error.message)
+              throw new Error(error.message)
             }
           }
         }
@@ -115,14 +122,12 @@ export function useSend() {
 
       toast.error('An error occurred while sending message.')
     } finally {
-      setIsLoading(false)
+      setState('idle')
       setAudioBlob(null)
     }
   }
 
   return {
     generate,
-    isLoading,
-    error,
   }
 }

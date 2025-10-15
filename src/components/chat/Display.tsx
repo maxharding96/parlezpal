@@ -1,5 +1,5 @@
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { ChatMessage } from './Message'
+import { ChatMessage, ChatMessageLoader } from './Message'
 import { useChatStore } from '@/hooks'
 import { useShallow } from 'zustand/react/shallow'
 import { useEffect, useRef } from 'react'
@@ -7,10 +7,11 @@ import { useEffect, useRef } from 'react'
 export function ChatDisplay() {
   const scrollAreaRef = useRef<HTMLDivElement>(null)
 
-  const { chatId, history } = useChatStore(
+  const { chatId, history, state } = useChatStore(
     useShallow((state) => ({
       chatId: state.chatId,
       history: state.history,
+      state: state.state,
     }))
   )
 
@@ -43,6 +44,9 @@ export function ChatDisplay() {
               {history.map((message, index) => (
                 <ChatMessage key={index} chatId={chatId} message={message} />
               ))}
+              {state !== 'idle' && (
+                <ChatMessageLoader user={state === 'transcribing'} />
+              )}
             </>
           )}
         </div>
