@@ -51,7 +51,11 @@ export const buildReplySystemInstuctions = ({
     }
   }
   \`\`\`
-  - **Note:** Ensure the scenario is level-appropriate.
+
+  #### Notes
+  - Ensure the scenario is level-appropriate.
+  - Make sure the scenario is always in English
+
 
   ### 2. Type: "roleplay_response"
 
