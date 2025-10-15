@@ -26,13 +26,11 @@ export function ChatDisplay() {
     }
   }, [history])
 
-  const empty = history.length === 0
-
   return (
     <div className="relative flex h-full flex-col">
       <ScrollArea ref={scrollAreaRef} className="flex-1 overflow-hidden px-4">
         <div className="space-y-4">
-          {empty ? (
+          {history.length === 0 && state === 'idle' ? (
             <div className="text-muted-foreground flex items-center justify-center p-16">
               <p>
                 Get started by suggesting a scenario to practice or ask your
