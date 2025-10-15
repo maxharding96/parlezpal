@@ -1,41 +1,38 @@
-import { GoogleGenAI } from '@google/genai'
-import { getUrl } from '@/lib/storage'
-import type { Level, Language } from '@/shared/schema'
+import { GoogleGenAI, type Content } from '@google/genai'
+import type { ReplyOutput, Message, ReplyInput } from '@/shared/schema'
+import { messageEvent } from '@/shared/schema'
 import {
   buildReplySystemInstuctions,
   buildStudentAudioDescription,
-  messageEvent,
 } from './instructions'
+import type { IChat } from '../schema'
 
-type ReplyInput = {
-  chatId: string
-  messageId: string
-  language: Language
-  level: Level
-}
-
-export class GeminiClient {
+export class GeminiClient implements IChat {
   private client: GoogleGenAI
 
   constructor({ apiKey }: { apiKey: string }) {
     this.client = new GoogleGenAI({ apiKey })
   }
 
-  async reply(input: ReplyInput) {
-    const { chatId, messageId, language, level } = input
+  async reply(input: ReplyInput): Promise<ReplyOutput> {
+    if (input.type !== 'gemini') {
+      throw new Error(
+        'Invalid input: GeminiClient can only accept "gemini" type'
+      )
+    }
 
-    const url = getUrl({
-      chatId,
-      messageId,
-    })
+    const { message, language, level, history } = input
 
-    const blob = await fetch(url)
-    const arrayBuffer = await blob.arrayBuffer()
+    const arrayBuffer = await message.arrayBuffer()
     const base64Audio = Buffer.from(arrayBuffer).toString('base64')
 
-    const response = await this.client.models.generateContent({
-      model: 'gemini-2.5-pro',
-      contents: [
+    const chat = this.client.chats.create({
+      model: 'gemini-2.5-flash',
+      history: this.formatHistory(history),
+    })
+
+    const response = await chat.sendMessage({
+      message: [
         {
           inlineData: {
             mimeType: 'audio/webm',
@@ -55,7 +52,50 @@ export class GeminiClient {
       throw Error('No response text returned')
     }
 
-    const unsafeMessage = JSON.parse(response.text)
-    const message = messageEvent.parse(unsafeMessage)
+    const unsafeReply = JSON.parse(response.text)
+    const reply = messageEvent.parse(unsafeReply)
+
+    return {
+      message: reply,
+    }
+  }
+
+  private formatHistory(messages: Message[]): Content[] {
+    const history: Content[] = []
+
+    for (let i = messages.length - 1; i >= 0; i--) {
+      const message = messages[i]!
+
+      const content = JSON.stringify({
+        type: message.type,
+        content: message.content,
+      })
+
+      if (message.type === 'user') {
+        history.push({
+          role: 'user',
+          parts: [
+            {
+              text: content,
+            },
+          ],
+        })
+      } else {
+        history.push({
+          role: 'model',
+          parts: [
+            {
+              text: content,
+            },
+          ],
+        })
+      }
+
+      if (message.type === 'scenario_proposal') {
+        break
+      }
+    }
+
+    return history.reverse()
   }
 }

@@ -1,46 +1,5 @@
 import type { Language, Level } from '@/shared/schema'
 import dedent from 'dedent'
-import { z } from 'zod'
-
-const scenarioProposal = z.object({
-  type: z.literal('scenario_proposal'),
-  payload: z.object({
-    description: z.string(),
-    student_role: z.string(),
-    your_role: z.string(),
-    message: z.string(),
-  }),
-})
-
-const roleplayResponse = z.object({
-  type: z.literal('roleplay_response'),
-  payload: z.object({
-    feedback: z.string(),
-    message: z.string(),
-  }),
-})
-
-const questionAnswer = z.object({
-  type: z.literal('question_answer'),
-  payload: z.object({
-    question: z.string(),
-    message: z.string(),
-  }),
-})
-
-const conversationControl = z.object({
-  type: z.literal('conversation_control'),
-  payload: z.object({
-    message: z.string(),
-  }),
-})
-
-export const messageEvent = z.discriminatedUnion('type', [
-  scenarioProposal,
-  roleplayResponse,
-  questionAnswer,
-  conversationControl,
-])
 
 export const buildStudentAudioDescription = ({
   language,
@@ -99,7 +58,7 @@ export const buildReplySystemInstuctions = ({
   #### When to Use:
   - This is the default response type during an active roleplay.
   - Use this when the student responds in **${language}** within the context of the scenario.
-
+  
   #### JSON Structure:
   \`\`\`json
   {
@@ -110,9 +69,10 @@ export const buildReplySystemInstuctions = ({
         - Phrases that are grammatically correct but could be more natural or idiomatic
         - This should be an empty string if the student's message is perfect
       >",
-      "message": "<Your message replying to the student.
-        - If you have **no** feedback, this should be a natural, in-character response to continue the conversation
-        - If you **do** have feedback, this should be a clear, concise explanation in English about what they should change
+      "correction_needed": <Boolean whether tutor should or shouldn't correct student based on feedback>
+      "message": "<Your message replying to the student:
+        - If correction_needed is "False", this should be a natural, in-character response to continue the conversation in ${language}
+        - If correction_needed is "True", this should be a clear, concise explanation in English about what they should change
       >"
     }
   }

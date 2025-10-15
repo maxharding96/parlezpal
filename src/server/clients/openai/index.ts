@@ -2,25 +2,16 @@ import type { IChat, ISpeech } from '@/server/clients/schema'
 import OpenAI from 'openai'
 import { zodTextFormat } from 'openai/helpers/zod'
 import type {
-  SendInput,
-  SendOutput,
-  ReplyInput,
   ReplyOutput,
   Message,
   TTSInput,
   STTInput,
   STTOutput,
-  UserMessage,
-  AssitantMessage,
+  ReplyInput,
 } from '@/shared/schema'
-import { MessageEvent } from '@/shared/schema'
+import { messageEvent } from '@/shared/schema'
 import type { ResponseInput } from 'openai/resources/responses/responses'
-import {
-  buildGenerateMessageInstructions,
-  buildStudentPrompt,
-  buildTutorPrompt,
-} from './instructions'
-import { getUrl, putBlob } from '@/lib/storage'
+import { buildGenerateMessageInstructions } from './instructions'
 
 export class OpenAIClient implements IChat, ISpeech {
   private client: OpenAI
@@ -29,38 +20,14 @@ export class OpenAIClient implements IChat, ISpeech {
     this.client = new OpenAI({ apiKey })
   }
 
-  async send(input: SendInput): Promise<SendOutput> {
-    const { chatId, messageId, language, prevMessage } = input
-
-    const url = getUrl({
-      chatId,
-      messageId,
-    })
-
-    const audio = await fetch(url)
-
-    const transcript = await this.client.audio.transcriptions.create({
-      file: audio,
-      model: 'gpt-4o-mini-transcribe',
-      prompt: buildStudentPrompt({
-        language,
-        prevMessage,
-      }),
-    })
-
-    const message: UserMessage = {
-      type: 'user',
-      id: messageId,
-      content: transcript.text,
-    }
-
-    return {
-      message,
-    }
-  }
-
   async reply(input: ReplyInput): Promise<ReplyOutput> {
-    const { chatId, messageId, language, level, history } = input
+    if (input.type !== 'openai') {
+      throw new Error(
+        'Invalid input: OpenAIClient can only accept "openai" type'
+      )
+    }
+
+    const { language, level, history } = input
 
     const response = await this.client.responses.parse({
       model: 'gpt-4o-mini',
@@ -71,29 +38,14 @@ export class OpenAIClient implements IChat, ISpeech {
       }),
       input: this.formatHistory(history),
       text: {
-        format: zodTextFormat(MessageEvent, 'event'),
+        format: zodTextFormat(messageEvent, 'event'),
       },
     })
 
-    const event = response.output_parsed
+    const message = response.output_parsed
 
-    if (!event) {
+    if (!message) {
       throw new Error('No message returned from OpenAI')
-    }
-
-    const prevMessage = history[history.length - 1]
-
-    await this.tts({
-      chatId,
-      messageId,
-      language,
-      message: event.content,
-      prevMessage: prevMessage?.content,
-    })
-
-    const message: AssitantMessage = {
-      id: messageId,
-      ...event,
     }
 
     return {
@@ -102,38 +54,26 @@ export class OpenAIClient implements IChat, ISpeech {
   }
 
   async stt(input: STTInput): Promise<STTOutput> {
-    const { chatId, messageId, language } = input
-
-    const url = getUrl({
-      chatId,
-      messageId,
-    })
-
-    const audio = await fetch(url)
+    const { instructions, file } = input
 
     const transcript = await this.client.audio.transcriptions.create({
-      file: audio,
+      file,
       model: 'gpt-4o-mini-transcribe',
-      // language: languageToCode[language],
-      prompt: buildStudentPrompt({
-        language,
-        prevMessage:
-          "Très bien ! Donc, un croissant et une tasse de thé. Cela fait 5 euros, s'il vous plaît. Comment allez-vous payer ?",
-      }),
+      prompt: instructions,
     })
 
-    return { message: transcript.text }
+    return { content: transcript.text }
   }
 
   async tts(input: TTSInput) {
-    const { chatId, messageId, message, language, prevMessage } = input
+    const { instructions, message } = input
 
     const blob = await this.client.audio.speech
       .create({
         model: 'gpt-4o-mini-tts',
         input: message,
         voice: 'alloy',
-        instructions: buildTutorPrompt({ language, prevMessage }),
+        instructions,
       })
       .then((response) => {
         if (!response.ok) {
@@ -142,10 +82,7 @@ export class OpenAIClient implements IChat, ISpeech {
         return response.blob()
       })
 
-    await putBlob(blob, {
-      chatId,
-      messageId,
-    })
+    return { blob }
   }
 
   private formatHistory(messages: Message[]): ResponseInput {
@@ -171,7 +108,7 @@ export class OpenAIClient implements IChat, ISpeech {
         })
       }
 
-      if (message.type === 'scenario') {
+      if (message.type === 'scenario_proposal') {
         break
       }
     }

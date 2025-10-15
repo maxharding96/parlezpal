@@ -96,11 +96,13 @@ export const buildTutorPrompt = ({
   language: Language
   prevMessage: string | undefined
 }) =>
-  dedent`
-  This is a recording of a ${language} language tutor talking to their student. The tutor will be speaking in BOTH ${language} and English.
-
-  ${prevMessage ? `The tutor is responding to their student who just said: "${prevMessage}"` : ''}
-`.trim()
+  [
+    `This is a recording of a ${language} language tutor talking to their student.`,
+    `**Make sure** if the text is in English, speak English with an English accent; if the text is in ${language}, speak ${language} with a ${language} accent.`,
+    `${prevMessage ? `The tutor is responding to their student who just said: "${prevMessage}"` : ''}`,
+  ]
+    .join(' ')
+    .trim()
 
 export const buildStudentPrompt = ({
   language,
@@ -109,8 +111,10 @@ export const buildStudentPrompt = ({
   language: Language
   prevMessage: string | undefined
 }) =>
-  dedent`
-  This is a recording of a student talking to their ${language} language tutor. The student will be speaking in BOTH ${language} and English.
-
-  ${prevMessage ? `The student is responding to their tutor who just said: "${prevMessage}"` : ''}
-`.trim()
+  [
+    `This is a recording of a student talking to their ${language} language tutor.`,
+    `**Make sure** if the student is speaking English, return text in English; if the student is speaking ${language}, return text in ${language}.`,
+    `${prevMessage ? `The student is responding to their tutor who just said: "${prevMessage}"` : ''}`,
+  ]
+    .join(' ')
+    .trim()

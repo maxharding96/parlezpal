@@ -15,7 +15,6 @@ export function InstructionsDisplay() {
     <Container>
       <h2 className="text-lg font-semibold">Instructions:</h2>
       <Instructions.Record />
-      <Instructions.Submit />
       <Instructions.Playback />
     </Container>
   )

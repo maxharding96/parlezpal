@@ -1,24 +1,22 @@
 import { useState } from 'react'
 import { useShallow } from 'zustand/react/shallow'
 import { useChatStore } from './useChatStore'
-import { SendOutput } from '@/shared/schema'
-import type { SendInput } from '@/shared/schema'
+import { apiErrorSchema, Message, type SendInput } from '@/shared/schema'
 import { useAudioStore } from './useAudioStore'
 import { v4 as uuidv4 } from 'uuid'
 import { uploadBlob } from '@/lib/storage'
 import { toast } from 'sonner'
 
 export function useSend() {
-  const { chatId, language, level, setTmpMessage, getLastMessage } =
-    useChatStore(
-      useShallow((state) => ({
-        chatId: state.chatId,
-        language: state.language,
-        level: state.level,
-        setTmpMessage: state.setTmpMessage,
-        getLastMessage: state.getLastMessage,
-      }))
-    )
+  const { chatId, language, level, history, pushMessage } = useChatStore(
+    useShallow((state) => ({
+      chatId: state.chatId,
+      language: state.language,
+      level: state.level,
+      history: state.history,
+      pushMessage: state.pushMessage,
+    }))
+  )
 
   const setAudioBlob = useAudioStore((state) => state.setAudioBlob)
 
@@ -40,8 +38,6 @@ export function useSend() {
       return
     }
 
-    const lastMessage = getLastMessage()
-
     setIsLoading(true)
     setError(null)
 
@@ -58,12 +54,15 @@ export function useSend() {
         chatId,
         messageId,
         language,
-        prevMessage: lastMessage?.content,
+        level,
+        history,
       }
+
+      console.log(input)
 
       const response = await fetch('/api/chat/send', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { method: 'application/json' },
         body: JSON.stringify(input),
       })
 
@@ -71,15 +70,39 @@ export function useSend() {
         throw new Error(`Message generation failed: ${response.statusText}`)
       }
 
-      const data = await response.json()
-      const { message } = SendOutput.parse(data)
+      const reader = response.body?.getReader()
+      if (!reader) {
+        throw new Error('Failed to get reader')
+      }
 
-      // Add user message to chat history
-      setTmpMessage(message)
-      // Reset audio state
-      setAudioBlob(null)
+      const decoder = new TextDecoder()
 
-      return message
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+
+        const text = decoder.decode(value)
+        const lines = text.split('\n\n')
+
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            const data = JSON.parse(line.slice(6))
+            const message = Message.safeParse(data)
+            if (message.success) {
+              pushMessage(message.data)
+
+              if (message.data.type !== 'user') {
+                return message.data
+              }
+            } else {
+              const error = apiErrorSchema.parse(data)
+
+              toast.error(error.message)
+              setError(error.message)
+            }
+          }
+        }
+      }
     } catch (error) {
       console.error('Message generation error:', error)
 
@@ -90,6 +113,7 @@ export function useSend() {
       toast.error('An error occurred while sending message.')
     } finally {
       setIsLoading(false)
+      setAudioBlob(null)
     }
   }
 
