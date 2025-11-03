@@ -16,6 +16,7 @@ import {
   Eye,
   MessageSquareOff,
   MessageSquare,
+  MessageCircleWarning,
 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { getUrl } from '@/lib/storage'
@@ -26,7 +27,7 @@ function getMessageLabel(message: Message) {
     case 'user':
       return 'You'
     case 'roleplay_response':
-      return 'Roleplay'
+      return message.correction ? 'Feedback' : 'Roleplay'
     case 'question_answer':
       return 'QA'
     case 'scenario_proposal':
@@ -39,7 +40,11 @@ function getMessageIcon(message: Message) {
     case 'user':
       return <User className="h-4 w-4" />
     case 'roleplay_response':
-      return <MessageCircle className="h-4 w-4" />
+      return message.correction ? (
+        <MessageCircleWarning className="h-4 w-4" />
+      ) : (
+        <MessageCircle className="h-4 w-4" />
+      )
     case 'question_answer':
       return <MessageCircleQuestionMark className="h-4 w-4" />
     case 'scenario_proposal':
@@ -54,12 +59,18 @@ function getMessageStyle(message: Message, hide: boolean) {
         container: 'ml-auto',
       }
     case 'roleplay_response':
-      return {
-        container: 'mr-auto',
-        card: 'bg-stone-50',
-        label: 'bg-stone-100',
-        text: hide ? 'bg-stone-100 text-stone-100 select-none' : '',
-      }
+      return message.correction
+        ? {
+            container: 'mr-auto',
+            card: 'bg-lime-50',
+            label: 'bg-lime-100',
+          }
+        : {
+            container: 'mr-auto',
+            card: 'bg-stone-50',
+            label: 'bg-stone-100',
+            text: hide ? 'bg-stone-100 text-stone-100 select-none' : '',
+          }
     case 'question_answer':
       return {
         container: 'mr-auto',
@@ -83,7 +94,9 @@ interface ChatMessageProps {
 export function ChatMessage(props: ChatMessageProps) {
   const { chatId, message } = props
 
-  const [hide, setHide] = useState(message.type === 'roleplay_response')
+  const shouldHide = message.type === 'roleplay_response' && !message.correction
+
+  const [hide, setHide] = useState(shouldHide)
 
   const url = getUrl({
     chatId,
@@ -120,7 +133,7 @@ export function ChatMessage(props: ChatMessageProps) {
                 </Badge>
               </div>
               <div className="flex gap-2">
-                {message.type === 'roleplay_response' && (
+                {shouldHide && (
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button
