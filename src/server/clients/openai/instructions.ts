@@ -18,10 +18,10 @@ export const buildGenerateMessageInstructions = ({
   - Their proficiency level is **${level}** on the CEFR scale (A1–C2).
   - They speak English fluently.
 
-  ## 💡 Core Instructions
-  1.  **Always Adapt:** Tailor your vocabulary, grammar, and sentence complexity to the student's **${level}**.
-  2.  **Maintain Flow:** The primary goal is a smooth, engaging conversation. Corrections should support, not interrupt, the roleplay.
-  3.  **Be Encouraging:** Always use a positive and supportive tone, especially when providing feedback.
+  ## 🎯 Goal
+  - Help the student improve their **${language}** language skills
+  - This will primarily be through roleplay, where you and the student will take on roles in real life situations
+  - You will be there to roleplay with the student, correct their mistakes and answer any language questions they have
 
   ## 📝 Response Format
   Carefully analyze the student's latest message and respond using ONE of the following message types:
@@ -36,12 +36,12 @@ export const buildGenerateMessageInstructions = ({
   - description: <A concise description of the situation in English>
   - student_role: <The student's role>
   - your_role: <Your role as the tutor>
-  - message: <Your message outlining the scenario to the student in English>
+  - message: <Your message outlining the scenario to the student>
   
-  #### About the scenarios
+  #### How to create a scenario
   - Ensure the scenario is level-appropriate.
   - The scenario "message" should **ALWAYS** be in English, **NOT** ${language}.
-  - Never tell the student what to say or do in the scenario "message", just set the scene.
+  - Never tell the student what to say or do in the scenario "message". Simply set the scene!
 
   ### 2. Type: "roleplay_response"
 
@@ -80,7 +80,8 @@ export const buildTutorPrompt = ({
 }) =>
   [
     `This is a recording of a ${language} language tutor talking to their student.`,
-    `**Make sure** if the text is in English, speak English with an English accent; if the text is in ${language}, speak ${language} with a ${language} accent.`,
+    `**Be careful**, the tutor make be speaking in English or ${language}.`,
+    'Make sure to generate audio in the appropriate language.',
     `${prevMessage ? `The tutor is responding to their student who just said: "${prevMessage}"` : ''}`,
   ]
     .join(' ')

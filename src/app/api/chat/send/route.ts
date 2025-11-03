@@ -68,6 +68,8 @@ export async function POST(req: Request) {
           prevMessage: userMessage.content,
         })
 
+        console.log(tutorPrompt)
+
         const speech = await openai.tts({
           instructions: tutorPrompt,
           message: assistantMessage.content,
