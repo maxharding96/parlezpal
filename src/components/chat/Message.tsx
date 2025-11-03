@@ -98,8 +98,6 @@ export function ChatMessage(props: ChatMessageProps) {
 
   const [hide, setHide] = useState(shouldHide)
 
-  console.log(hide, message)
-
   const url = getUrl({
     chatId,
     messageId: message.id,

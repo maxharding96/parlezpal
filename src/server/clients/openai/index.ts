@@ -39,8 +39,6 @@ export class OpenAIClient implements IChat, ISpeech {
 
     const responsesInput = [...this.formatHistory(history), message]
 
-    console.log(responsesInput)
-
     const response = await this.client.responses.parse({
       model: 'gpt-4o-mini',
       temperature: 0.7,
