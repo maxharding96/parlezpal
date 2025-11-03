@@ -23,6 +23,7 @@ export const AssitantMessage = z.object({
   type: assistantMessageType,
   id: z.string(),
   content: z.string(),
+  correction: z.boolean().optional(),
 })
 
 export type AssitantMessage = z.infer<typeof AssitantMessage>
@@ -93,6 +94,7 @@ const roleplayResponse = z.object({
   type: z.literal('roleplay_response'),
   payload: z.object({
     feedback: z.string(),
+    correction_needed: z.boolean(),
     message: z.string(),
   }),
 })

@@ -61,14 +61,16 @@ export async function POST(req: Request) {
           id: uuidv4(),
           type: message.type,
           content: message.payload.message,
+          correction:
+            message.type === 'roleplay_response'
+              ? message.payload.correction_needed
+              : undefined,
         }
 
         const tutorPrompt = buildTutorPrompt({
           language,
           prevMessage: userMessage.content,
         })
-
-        console.log(tutorPrompt)
 
         const speech = await openai.tts({
           instructions: tutorPrompt,
