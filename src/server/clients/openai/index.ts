@@ -10,7 +10,10 @@ import type {
   ReplyInput,
 } from '@/shared/schema'
 import { replyOutputSchema } from '@/shared/schema'
-import type { ResponseInput } from 'openai/resources/responses/responses'
+import type {
+  ResponseInput,
+  ResponseInputItem,
+} from 'openai/resources/responses/responses'
 import { buildGenerateMessageInstructions } from './instructions'
 
 export class OpenAIClient implements IChat, ISpeech {
@@ -29,6 +32,15 @@ export class OpenAIClient implements IChat, ISpeech {
 
     const { language, level, history } = input
 
+    const message: ResponseInputItem = {
+      role: 'user',
+      content: input.message,
+    }
+
+    const responsesInput = [...this.formatHistory(history), message]
+
+    console.log(responsesInput)
+
     const response = await this.client.responses.parse({
       model: 'gpt-4o-mini',
       temperature: 0.7,
@@ -36,7 +48,7 @@ export class OpenAIClient implements IChat, ISpeech {
         language,
         level,
       }),
-      input: this.formatHistory(history),
+      input: responsesInput,
       text: {
         format: zodTextFormat(replyOutputSchema, 'event'),
       },
@@ -89,20 +101,15 @@ export class OpenAIClient implements IChat, ISpeech {
     for (let i = messages.length - 1; i >= 0; i--) {
       const message = messages[i]!
 
-      const content = JSON.stringify({
-        type: message.type,
-        content: message.content,
-      })
-
       if (message.type === 'user') {
         history.push({
           role: 'user',
-          content,
+          content: message.content,
         })
       } else {
         history.push({
           role: 'assistant',
-          content,
+          content: message.content,
         })
       }
 

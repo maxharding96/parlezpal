@@ -66,17 +66,12 @@ export class GeminiClient implements IChat {
     for (let i = messages.length - 1; i >= 0; i--) {
       const message = messages[i]!
 
-      const content = JSON.stringify({
-        type: message.type,
-        content: message.content,
-      })
-
       if (message.type === 'user') {
         history.push({
           role: 'user',
           parts: [
             {
-              text: content,
+              text: message.content,
             },
           ],
         })
@@ -85,7 +80,7 @@ export class GeminiClient implements IChat {
           role: 'model',
           parts: [
             {
-              text: content,
+              text: message.content,
             },
           ],
         })
