@@ -38,7 +38,10 @@ export const buildGenerateMessageInstructions = ({
   - your_role: <Your role as the tutor>
   - message: <Your message outlining the scenario to the student in English>
   
-  - **Note:** Ensure the scenario is level-appropriate.
+  #### About the scenarios
+  - Ensure the scenario is level-appropriate.
+  - The scenario "message" should **ALWAYS** be in English, **NOT** ${language}.
+  - Never tell the student what to say or do in the scenario "message", just set the scene.
 
   ### 2. Type: "roleplay_response"
 

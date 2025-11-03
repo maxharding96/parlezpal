@@ -44,18 +44,18 @@ export const buildReplySystemInstuctions = ({
   {
     "type": "scenario_proposal",
     "payload": {
-      "description": "<A concise description of the situation in English>",
+      "description": "<A concise description of the situation>",
       "student_role": "<The student's role>",
       "your_role": "<Your role as the tutor>",
-      "message": "<Your message outlining the scenario to the student in English>"
+      "message": "<Your message outlining the scenario to the student>"
     }
   }
   \`\`\`
 
-  #### Notes
+  #### About the scenarios
   - Ensure the scenario is level-appropriate.
-  - Make sure the scenario is always in English
-
+  - The scenario "message" should **ALWAYS** be in English, **NOT** ${language}.
+  - Never tell the student what to say or do in the scenario "message", just set the scene.
 
   ### 2. Type: "roleplay_response"
 
